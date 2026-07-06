@@ -78,6 +78,7 @@ Type annotations can be used by adding a keyword immediately after a name wherev
 
 #+begin_quote
 that finds the nameform that whets the wits
+
 —James Joyce, Finnegans Wake.
 #+end_quote
 
@@ -332,14 +333,10 @@ Define a named structural record type with typed field declarations. A definitio
 A record declaration consists of a keyword (the type) and field clauses. Required fields are declared first, then optional, then keyword pairs.
 
 *Field clauses*
-- ~(field name type)~
-—required positional argument
-- ~(optional name type)~
-—optional positional argument (defaults to ~nil~), can also be set via ~:keyword value~
-- ~(guard pred-fn)~
-—optional guard predicate (for any extra validation)
-- ~(print handler-fn)~
-—optional custom pretty-print handler (for string based output)
+- ~(field name type)~ required positional argument
+- ~(optional name type)~ optional positional argument (defaults to ~nil~), can also be set via ~:keyword value~
+- ~(guard pred-fn)~ optional guard predicate (for any extra validation)
+- ~(print handler-fn)~ optional custom pretty-print handler (for string based output)
 
 #+BEGIN_SRC janet
 (deftrecord :person
@@ -380,7 +377,6 @@ A definition can include a guard predicate which has access to the declared fiel
 
 #+begin_quote
 Three quarks for Muster Mark!
-—James Joyce, Finnegans Wake.
 #+end_quote
 
 Define an enumeration type from a string to value map. Values can be of any =:type=. The macro registers a type predicate and generates an accessor for looking up values by key. The macro also creates the functions '<name>-extend' and '<name>-remove' which can be used to modify the enum.
@@ -680,7 +676,7 @@ Thus the unfacts, did we possess them, are too imprecisely few to warrant our ce
 —James Joyce, Finnegans Wake.
 #+end_quote
 
-deft implements a gradual typing approach to integrating static and dynamic typing within the same language.
+deft implements a gradual typing approach to integrating static and dynamic typing within the same language. It has Features.
 
 ** Blame
 
