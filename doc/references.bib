@@ -1,0 +1,157 @@
+% papers, literature and related reading
+
+@inproceedings{siek-taha-2006,
+  author    = {Siek, Jeremy G. and Taha, Walid},
+  title     = {Gradual Typing for Functional Languages},
+  booktitle = {Scheme and Functional Programming Workshop},
+  year      = {2006},
+  url       = {http://scheme2006.cs.uchicago.edu/13-siek.pdf},
+  note      = {Foundations of the consistency relation and typing with :dynamic.}
+}
+
+@incollection{siek-garcia-taha-2009,
+  author    = {Siek, Jeremy G. and Garcia, Ronald and Taha, Walid},
+  title     = {Exploring the Design Space of Higher-Order Casts},
+  booktitle = {Programming Languages and Systems (ESOP 2009)},
+  publisher = {Springer},
+  year      = {2009},
+  doi       = {10.1007/978-3-642-00590-9_2},
+  isbn      = {978-3-642-00589-3},
+  pages     = {17--31},
+  note      = {Refined higher-order cast semantics, and the :fn contract wrapper.}
+}
+
+@inproceedings{findler-felleisen-2002,
+  author    = {Findler, Robert Bruce and Felleisen, Matthias},
+  title     = {Contracts for Higher-Order Functions},
+  booktitle = {Proceedings of the Seventh ACM SIGPLAN International Conference on Functional Programming (ICFP)},
+  year      = {2002},
+  doi       = {10.1145/581478.581484},
+  pages     = {48--59},
+  note      = {Function contract boundaries and higher-order contracts.}
+}
+
+@inproceedings{garcia-2016,
+  author    = {Garcia, Ronald and Clark, Alison M. and Tanter, {\'E}ric and Siek, Jeremy G.},
+  title     = {Abstracting Gradual Typing},
+  booktitle = {Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)},
+  year      = {2016},
+  doi       = {10.1145/2837614.2837670},
+  pages     = {423--437},
+  note      = {Provides an abstract-specification framework for gradual type systems via the abstracting discipline. Unifying the design space of consistency, predicates, and the gradual guarantee.}
+}
+
+@inproceedings{kent-2016,
+  author    = {Kent, Andrew M. and Kempe, David and Tobin-Hochstadt, Sam},
+  title     = {Occurrence Typing Modulo Theories},
+  booktitle = {Proceedings of the 37th ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
+  year      = {2016},
+  doi       = {10.1145/2908080.2908091},
+  pages     = {296--309},
+  note      = {Generalisation of occurrence typing to work with external predicate theories, narrowing variable types under arbitrary compound predicates.}
+}
+
+@article{miyazaki-2019,
+  author    = {Miyazaki, Yudai and Sekiyama, Taro and Igarashi, Atsushi},
+  title     = {Dynamic Type Inference for Gradual {Hindley--Milner}},
+  journal   = {ACM Transactions on Programming Languages and Systems (TOPLAS)},
+  year      = {2019},
+  volume    = {41},
+  number    = {1},
+  pages     = {5:1--5:59},
+  doi       = {10.1145/3290331},
+  note      = {Extension of gradual inference to a Hindley--Milner style.}
+}
+
+@inproceedings{rastogi-2015,
+  author    = {Rastogi, Aseem and Swamy, Nikhil and Fournet, C{\'e}dric and Bierman, Gavin and Vekris, Panagiotis},
+  title     = {Safe \& Efficient Gradual Typing for {TypeScript}},
+  booktitle = {Proceedings of the 42nd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)},
+  year      = {2015},
+  doi       = {10.1145/2676726.2676971},
+  pages     = {167--180},
+  note      = {Ahead-of-time static verification for hybrid typed-untyped programs.}
+}
+
+@article{dunfield-krishnaswami-2021,
+  author    = {Dunfield, Jana and Krishnaswami, Neelakantan R.},
+  title     = {Bidirectional Typing},
+  journal   = {ACM Computing Surveys},
+  year      = {2021},
+  volume    = {54},
+  number    = {5},
+  pages     = {98:1--98:38},
+  doi       = {10.1145/3450952},
+  note      = {Comprehensive survey of bidirectional type systems.}
+}
+
+@inproceedings{siek-vachharajani-2008,
+  author    = {Siek, Jeremy G. and Vachharajani, Manish},
+  title     = {Gradual Typing with Unification-Based Inference},
+  booktitle = {Proceedings of the 2008 Symposium on Dynamic Languages (DLS)},
+  year      = {2008},
+  doi       = {10.1145/1408681.1408688},
+  pages     = {7:1--7:12},
+  note      = {Local type inference for unannotated parameters.}
+}
+
+@inproceedings{siek-2015,
+  author    = {Siek, Jeremy G. and Vitousek, Michael M. and Cimini, Matteo and Boyland, John Tang},
+  title     = {Refined Criteria for Gradual Typing},
+  booktitle = {1st Summit on Advances in Programming Languages (SNAPL)},
+  year      = {2015},
+  doi       = {10.4230/LIPIcs.SNAPL.2015.274},
+  isbn      = {978-3-939897-80-4},
+  pages     = {274--293},
+  note      = {Formalises the gradual guarantee that adding type annotations to a term never breaks existing well-typed programs under the same (or more permissive) typing context.}
+}
+
+@inproceedings{tobin-hochstadt-felleisen-2008,
+  author    = {Tobin-Hochstadt, Sam and Felleisen, Matthias},
+  title     = {The Design and Implementation of {Typed Scheme}},
+  booktitle = {Proceedings of the 35th Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)},
+  year      = {2008},
+  doi       = {10.1145/1328438.1328486},
+  pages     = {395--406},
+  note      = {Occurrence typing, flow-sensitive type narrowing based on predicate checks. The module boundary approach for progressive typing.}
+}
+
+@incollection{wadler-findler-2009,
+  author    = {Wadler, Philip and Findler, Robert Bruce},
+  title     = {Well-Typed Programs Can't Be Blamed},
+  booktitle = {Programming Languages and Systems (ESOP 2009)},
+  publisher = {Springer},
+  year      = {2009},
+  doi       = {10.1007/978-3-642-00590-9_1},
+  isbn      = {978-3-642-00589-3},
+  pages     = {1--16},
+  note      = {Blame assignment for runtime casts.}
+}
+
+@book{brady-2017,
+  author    = {Brady, Edwin},
+  title     = {Type-Driven Development with {Idris}},
+  publisher = {Manning Publications},
+  year      = {2017},
+  isbn      = {9781617293023},
+  note      = {Practical introduction to type-driven development using dependent types in Idris, demonstrating how types can guide program construction and verification.}
+}
+
+@book{joyce-1939,
+  author    = {Joyce, James},
+  title     = {Finnegans Wake},
+  publisher = {Faber \& Faber},
+  year      = {1939},
+  isbn      = {9780571215946},
+  note      = {}
+}
+
+@book{calvino-1968,
+  author    = {Calvino, Italo},
+  title     = {Cosmicomics},
+  publisher = {Harcourt Brace},
+  year      = {1968},
+  note      = {Translated by William Weaver. Original Italian title: Le cosmicomiche (1965)},
+  isbn      = {9780156226006},
+  note      = {}
+}
