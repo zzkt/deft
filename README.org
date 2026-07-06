@@ -4,7 +4,8 @@
 
 #+begin_quote
 The art of progress is to preserve order amid change, and to preserve change amid order.
-— Alfred North Whitehead, Process and Reality
+
+—Alfred North Whitehead, Process and Reality
 #+end_quote
 
 * Overview
@@ -67,6 +68,7 @@ There are some deft forms that share names with declarations in the Janet API (n
 I knew that signs also allow others to judge the one who makes them, and that
 in the course of a galactic year tastes and ideas have time to change, and the
 way of regarding the earlier ones depends on what comes afterwards.
+
 —Italo Calvino, Cosmicomics.
 #+end_quote
 
@@ -330,10 +332,14 @@ Define a named structural record type with typed field declarations. A definitio
 A record declaration consists of a keyword (the type) and field clauses. Required fields are declared first, then optional, then keyword pairs.
 
 *Field clauses*
-- ~(field name type)~ — required positional argument
-- ~(optional name type)~ — optional positional argument (defaults to ~nil~), can also be set via ~:keyword value~
-- ~(guard pred-fn)~ — optional guard predicate (for any extra validation)
-- ~(print handler-fn)~ — optional custom pretty-print handler (for string based output)
+- ~(field name type)~
+—required positional argument
+- ~(optional name type)~
+—optional positional argument (defaults to ~nil~), can also be set via ~:keyword value~
+- ~(guard pred-fn)~
+—optional guard predicate (for any extra validation)
+- ~(print handler-fn)~
+—optional custom pretty-print handler (for string based output)
 
 #+BEGIN_SRC janet
 (deftrecord :person
@@ -670,6 +676,7 @@ Further: [cite:@siek-vachharajani-2008] unification-based inference for gradual 
 
 #+begin_quote
 Thus the unfacts, did we possess them, are too imprecisely few to warrant our certitude
+
 —James Joyce, Finnegans Wake.
 #+end_quote
 
@@ -679,13 +686,14 @@ deft implements a gradual typing approach to integrating static and dynamic typi
 
 #+begin_quote
 Without Contraries is no progression.
-— William Blake, The Marriage of Heaven and Hell
+
+—William Blake, The Marriage of Heaven and Hell
 #+end_quote
 
 When a cast fails, blame is assigned to either the caller or the function
 
-- *Caller blamed* — argument type mismatch (i.e. caller passed a bad value)
-- *Function blamed* — return type mismatch (i.e. function returned a bad value)
+- *Caller blamed*. Argument type mismatch (i.e. caller passed a bad value)
+- *Function blamed*. Return type mismatch (i.e. function returned a bad value)
 
 This enables you to locate the source of a type error without using a full static type checker.
 
@@ -705,6 +713,7 @@ Further: [cite:@siek-taha-2006] also; [cite:@garcia-2016] for the abstract speci
 
 #+begin_quote
 I had developed a system of my own, to shut him up: 'Oh, no? And what does it mean then, in your opinion?' He kept quiet: lacking imagination as he did, when a word began to have one meaning it promptly lost all the others.
+
 —Italo Calvino, Cosmicomics, "A Sign in Space"
 #+end_quote
 
@@ -729,6 +738,7 @@ Further: [cite:@findler-felleisen-2002] higher-order contract system;  [cite:@wa
 
 #+begin_quote
 All that you touch you Change. All that you Change changes you.
+
 —Octavia Butler, Parable of the Sower
 #+end_quote
 
@@ -780,6 +790,7 @@ In ~if~ branches, the condition can be used to narrow variable types in each bra
 
 #+begin_quote
 Nothing is so painful to the human mind as a great and sudden change.
+
 —Mary Shelley, Frankenstein
 #+end_quote
 
@@ -876,6 +887,7 @@ Further: [cite:@rastogi-2015] ahead-of-time checking for hybrid type systems; [c
 
 #+begin_quote
 Everything is real and not real, both real and not real, neither real nor not real.
+
 —Nagarjuna, Mūlamadhyamakakārikā 18:8
 #+end_quote
 
@@ -909,7 +921,8 @@ Further: [cite:@wadler-findler-2009] for blame calculus; [cite:@findler-felleise
 
 #+begin_quote
 The Hive is an idea that shapes reality.
-— Ada Palmer, Too Like the Lightning
+
+—Ada Palmer, Too Like the Lightning
 #+end_quote
 
 Following the Typed Racket model, add types one module at a time. Untyped modules are assumed to produce ~:dynamic~ values at their exports, and typed modules insert casts at the boundary.
