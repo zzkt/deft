@@ -11,8 +11,7 @@ Returns a list of error strings.
   [form]
   (let [errors @[]]
     (when (and (tuple? form) (symbol? (first form)))
-      (let [op (first form)
-            name (get form 1)
+      (let [name (get form 1)
             args (get form 2)
             body-start (if (and (> (length form) 3) (keyword? (get form 3))) 4 3)
             return-type (if (= body-start 4) (get form 3) :dynamic)

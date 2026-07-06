@@ -411,8 +411,7 @@ No type annotation, var.
 (defmacro deftype
   "Register a new type :keyword with a predicate function or compound form."
   [name pred]
-  (let [register-type-fn (deft-ref 'register-type)
-        type-pred-fn (deft-ref 'type-predicate)]
+  (def register-type-fn (deft-ref 'register-type))
     (cond
       (keyword? pred)
         ~(,register-type-fn ',name (fn [v] ,(expand-type-form pred)))
@@ -420,7 +419,7 @@ No type annotation, var.
            (find |(= (first pred) $)
                  '(or and not define :array :tuple :table :string)))
         ~(,register-type-fn ',name (fn [v] ,(expand-type-form pred)))
-      ~(,register-type-fn ',name ,pred))))
+      ~(,register-type-fn ',name ,pred)))
 
 (defmacro deftrecord
   ```Define a typed record with named fields, optional guard, and custom printer.
@@ -440,7 +439,6 @@ Each field clause is one of the following
   [name & clauses]
   (let [register-type-fn (deft-ref 'register-type)
         cast-fn (deft-ref 'cast)
-        type-pred-fn (deft-ref 'type-predicate)
         pp-str-fn (deft-ref 'pp-str)
         prefix (string/replace ":" "" (string name))
         clause-type? (fn [c tag]
@@ -463,7 +461,7 @@ Each field clause is one of the following
         args-sym (gensym)
         idx-sym (gensym)
         k-sym (gensym)]
-    (with-syms [pv ov obj env]
+    (with-syms [pv ov env]
       (def do-body @[])
       (array/push do-body
         ~(,register-type-fn ',name

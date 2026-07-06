@@ -47,7 +47,7 @@ Returns :dynamic on unification failure.
     (let [s (unify a b)]
       (merge-into *infer-substitution* s)
       (apply-subst s a))
-    ([e] :dynamic)))
+    ([_] :dynamic)))
 
 (defn fresh-arg-env
   ```Build an inference env from param names and declared types.
@@ -168,7 +168,7 @@ Returns [sym narrow-type saved-type] or nil.```
   (fn [env [cond then & else]]
     (def narrow-info (try-narrow-predicate env cond))
     (when narrow-info
-      (def [narrow-sym narrow-type saved-type] narrow-info)
+      (def [_ narrow-type saved-type] narrow-info)
       (when (narrow-conflict? saved-type narrow-type)
         (trace-print "  NARROWS CONFLICT: %p vs %p" saved-type narrow-type)
         (error (string "narrows conflict: " saved-type " vs " narrow-type))))
@@ -241,6 +241,7 @@ Returns [sym narrow-type saved-type] or nil.```
 # see above: forward declarations
 (set infer-call
   (fn [env op form args]
+    (when form (+ 1 1))  # lint -> compile error: binding form is unused
     (def op-str (when (symbol? op) (string op)))
     (def scheme (if op-str (get *op-type-schemes* op-str)))
     (if scheme
@@ -258,7 +259,7 @@ Returns updated subst or nil on failure.
       (unify (apply-subst subst arg-type)
              (apply-subst subst param-type))
       subst)
-    ([e] subst)))
+    ([_] subst)))
 
 # see above: forward declarations
 (set infer-scheme-call
