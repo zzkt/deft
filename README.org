@@ -208,7 +208,7 @@ Further: [cite:@siek-taha-2006] on the consistency relation extended to custom p
 ** Typed functions
 *** ~deftfn~
 
-Define a gradually typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. ~deftfn~ inserts runtime arg and return checks but does *not* register a ~:fn~ type scheme, so ~fn-type-of~ will not work for functions defined with ~deftfn~ (use ~deftn~ or ~define~ if you need to query a function's type at runtime).
+Define a typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. ~deftfn~ inserts runtime arg and return checks but does *not* register a ~:fn~ type scheme (so ~fn-type-of~ will not work for functions defined with ~deftfn~, use ~deftn~ or ~define~ if you need to query a function's type at runtime).
 
 #+begin_src janet
 (deftfn add [x :number y :number] :number
@@ -429,6 +429,10 @@ Mutation of the enum table is reflected immediately in the accessor function and
 #+END_SRC
 
 ** Type properties, checking and inference
+:PROPERTIES:
+:ID: type-properties-and-inference
+:END:
+
 *** ~type~ (extended)
 
 Returns the type of a value. For values tagged with a user defined type it returns that tag, otherwise falls through to Janet's built-in ~type~.
@@ -753,7 +757,7 @@ Unannotated parameters in ~deftn~ and ~define~ are inferred from usage in the fu
 (deftn greet [a :string x] (string a x))  # x: :dynamic, return :string
 #+end_src
 
-See [[#type-properties-checking-and-inference][Type properties, checking and inference]] for the details; ~infer-expression~, ~infer-expression-full~, ~fn-type-of~, ~infer-assert-type~, ~with-inference-trace~, ~enable-inference-trace~, ~deftcheck~, and ~check-form~.
+See [[#type-properties-and-inference][Type properties, checking and inference]] for the details; ~infer-expression~, ~infer-expression-full~, ~fn-type-of~, ~infer-assert-type~, ~with-inference-trace~, ~enable-inference-trace~, ~deftcheck~, and ~check-form~.
 
 *** Type schemes
 
@@ -1024,7 +1028,6 @@ Start with simple type annotations, escalate to higher-order ~:fn~ contracts for
 * References and reading
 
 A comprehensive overview of gradual typing research can be found in the [[https://samth.github.io/gradual-typing-bib/][Gradual Typing Bibliography]].
-
 
 
  - *Gradual Typing for Functional Languages*, Siek & Taha 2006. [cite:@siek-taha-2006] Foundations of the consistency relation and typing with :dynamic. [[http://scheme2006.cs.uchicago.edu/13-siek.pdf][Scheme and Functional Programming Workshop 2006]]
