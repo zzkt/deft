@@ -108,8 +108,8 @@ Prints trace output to stderr when inference tracing is enabled.```
   (trace-print "  infer %p => %p" form (default-to-dynamic result))
   result)
 
-(set infer-tuple
-  (fn [env form]
+
+(varfn infer-tuple [env form]
     (let [op (first form)
           args (array/slice form 1)]
       (case op
@@ -121,9 +121,12 @@ Prints trace output to stderr when inference tracing is enabled.```
         'let (infer-let env args)
         'quote :dynamic
         'while (infer-seq env args)
-        'for (let [iv (get form 1)] (put env iv :number) (infer-seq env (array/slice form 4)))
-        'each (let [iv (get form 1)] (put env iv :dynamic) (infer-seq env (array/slice form 3)))
-        (infer-call env op form args)))))
+        'for (let [iv (get form 1)] (put env iv :number)
+                  (infer-seq env (array/slice form 4)))
+        'each (let [iv (get form 1)] (put env iv :dynamic)
+                   (infer-seq env (array/slice form 3)))
+        (infer-call env op args))))
+
 
 (defn- merge-substitutions
   ```Merge then-branch and else-branch substitutions into *infer-substitution*.
@@ -139,13 +142,15 @@ When a variable resolves to different types in each branch, unify to :dynamic.``
       (put *infer-substitution* k v))))
 
 (defn- try-narrow-predicate
-  ```Check if cond is a predicate call and if so, return the narrow info.
+  ```Check if condition is a predicate call and if so, return narrowing info.
 Returns [sym narrow-type saved-type] or nil.```
-  [env cond]
-  (when (and (tuple? cond) (symbol? (first cond)) (> (length cond) 1))
-    (def narrow (get *predicate-narrowing* (string (first cond))))
+  [env condition]
+  (when (and (tuple? condition)
+             (symbol? (first condition))
+             (> (length condition) 1))
+    (def narrow (get *predicate-narrowing* (string (first condition))))
     (when narrow
-      (def sym (in cond 1))
+      (def sym (in condition 1))
       (def saved (get env sym))
       (trace-print "  narrow: %p -> %p (was %p)" sym narrow saved)
       [sym narrow saved])))
@@ -164,15 +169,14 @@ Returns [sym narrow-type saved-type] or nil.```
       (and (tuple? form) (some |(deep-sym? $ sym) form))))
 
 # see above: forward declarations
-(set infer-if
-  (fn [env [cond then & else]]
-    (def narrow-info (try-narrow-predicate env cond))
+(varfn infer-if [env [condition then & else]]
+    (def narrow-info (try-narrow-predicate env condition))
     (when narrow-info
       (def [_ narrow-type saved-type] narrow-info)
       (when (narrow-conflict? saved-type narrow-type)
         (trace-print "  NARROWS CONFLICT: %p vs %p" saved-type narrow-type)
         (error (string "narrows conflict: " saved-type " vs " narrow-type))))
-    (infer-syn env cond)
+    (infer-syn env condition)
     (def saved-subst (copy-subst *infer-substitution*))
     # Apply narrowing for then-branch
     (when narrow-info
@@ -197,26 +201,23 @@ Returns [sym narrow-type saved-type] or nil.```
       (def var-appears-in-else? (some |(deep-sym? $ narrow-sym) else))
       (unless var-appears-in-else?
         (unify-and-record (narrow-info 2) (narrow-info 1))))
-    combined-type))
+    combined-type)
 
 # see above: forward declarations
-(set infer-binding
-  (fn [env [sym val]]
+(varfn infer-binding [env [sym val]]
     (def val-type (infer-syn env val))
     (put env sym (subst-resolve val-type))
-    val-type))
+    val-type)
 
 # see above: forward declarations
-(set infer-seq
-  (fn [env forms]
+(varfn infer-seq [env forms]
     (var ret-type :dynamic)
     (each f forms
       (set ret-type (infer-syn env f)))
-    ret-type))
+    ret-type)
 
 # see above: forward declarations
-(set infer-fn
-  (fn [env [params & body]]
+(varfn infer-fn [env [params & body]]
     (def param-names (filter (fn [p] (and (symbol? p) (not= '& p))) params))
     (def has-rest? (some |(= '& $) params))
     (def rest-pos (index-of '& params))
@@ -228,25 +229,34 @@ Returns [sym narrow-type saved-type] or nil.```
       (put fn-env rest-name (tuple :array :dynamic)))
     (let [body-type (infer-seq fn-env body)
           arg-types (map (fn [p] (lookup-type fn-env p)) param-names)]
-      (tuple :fn arg-types body-type))))
+      (tuple :fn arg-types body-type)))
 
 # see above: forward declarations
-(set infer-let
-  (fn [env [bindings & body]]
-    (let [pairs (partition 2 bindings)]
-      (each [sym val] pairs
+(varfn infer-let [env [bindings & body]]
+    (let [p2 (partition 2 bindings)]
+      (each [sym val] p2
         (put env sym (subst-resolve (infer-syn env val)))))
-    (infer-seq env body)))
+    (infer-seq env body))
 
 # see above: forward declarations
-(set infer-call
-  (fn [env op form args]
-    (when form (+ 1 1))  # lint -> compile error: binding form is unused
+(varfn infer-call [env op args]
     (def op-str (when (symbol? op) (string op)))
-    (def scheme (if op-str (get *op-type-schemes* op-str)))
-    (if scheme
-      (infer-scheme-call env args scheme)
-      (infer-dynamic-call env op args))))
+    (def element-type
+      (when (and (= op-str "in") (= (length args) 2))
+        (def coll (in args 0))
+        (when (symbol? coll)
+          (def coll-type (lookup-type env coll))
+          (when (and (tuple? coll-type)
+                     (or (= :tuple (first coll-type)) (= :array (first coll-type)))
+                     (> (length coll-type) 1))
+            (trace-print "  in-element: %p[%p] => %p" coll (in args 1) (coll-type 1))
+            (coll-type 1)))))
+    (if element-type element-type
+      (do
+        (def scheme (if op-str (get *op-type-schemes* op-str)))
+        (if scheme
+          (infer-scheme-call env args scheme)
+          (infer-dynamic-call env op args)))))
 
 # see above: forward declarations
 (defn- unify-arg-with-param
@@ -262,8 +272,7 @@ Returns updated subst or nil on failure.
     ([_] subst)))
 
 # see above: forward declarations
-(set infer-scheme-call
-  (fn [env args scheme]
+(varfn infer-scheme-call [env args scheme]
     (let [param-types (get scheme 1)
           ret-type (get scheme 2)
           n-params (length param-types)]
@@ -276,11 +285,10 @@ Returns updated subst or nil on failure.
           (error (string "expected mutable, got " arg-type)))
         (set subst (unify-arg-with-param subst arg-type param-type)))
       (merge-into *infer-substitution* subst)
-      (default-to-dynamic (apply-subst subst ret-type)))))
+      (default-to-dynamic (apply-subst subst ret-type))))
 
 # see above: forward declarations
-(set infer-dynamic-call
-  (fn [env op args]
+(varfn infer-dynamic-call [env op args]
     (if (not (symbol? op)) :dynamic
       (do (def fn-type (lookup-type env op))
         (if (not (and (tuple? fn-type) (= :fn (first fn-type)))) :dynamic
@@ -292,7 +300,7 @@ Returns updated subst or nil on failure.
               (def arg-type (infer-syn env (args i)))
               (set subst (unify-arg-with-param subst arg-type (param-types i)))))
           (merge-into *infer-substitution* subst)
-          (default-to-dynamic (apply-subst subst ret-type))))))))
+          (default-to-dynamic (apply-subst subst ret-type)))))))
 
 
 (defn infer-syn-form

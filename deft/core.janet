@@ -29,6 +29,30 @@
   [name pred]
   (put *type-registry* name pred))
 
+(var *guard-registry*
+  "Table mapping record type keywords to their guard predicate."
+  @{})
+
+(defn register-guard
+  "Register a guard predicate for a record type. Returns the guard-fn."
+  [name guard-fn]
+  (put *guard-registry* name guard-fn)
+  guard-fn)
+
+(defn guard-of
+  "Return the registered guard predicate for a record type, or nil."
+  [name]
+  (get *guard-registry* name))
+
+(defn shape-satisfied?
+  "Check whether value passes a record's field/shape checks (excluding the
+   guard). target-name must be a registered record type; value must be a
+   table/struct. Returns true when the shape predicate passes."
+  [target-name value]
+  (when (or (table? value) (struct? value))
+    (let [pred (get *type-registry* target-name)]
+      (and pred (pred value)))))
+
 (defn unregister-type
   "Remove a named type predicate."
   [name]
@@ -43,16 +67,18 @@
 
 (defn tag-value
   "Associate a value with its declared type."
-  [v type]
-  (put *value-types* v type))
+  [v T]
+  (put *value-types* v T))
+
 
 # Shadow built-in type form
 (def core-type type)
 
-(defn type
+(defn type :shadow
   "Return the declared type of a value."
   [v]
   (or (get *value-types* v) (core-type v)))
+
 
 (defn fn-type?
   "Check if a form is a function. i.e. (:fn [args... -> ret])"
@@ -183,9 +209,12 @@
   *type-registry*)
 
 (defn isa?
-  "Check if a value satisfies a type predicate."
+  "Check if a value satisfies a type predicate. For record types with a
+   registered guard, also requires the guard to pass."
   [v T]
-  ((type-predicate T) v))
+  (let [guard (guard-of T)]
+    (and ((type-predicate T) v)
+         (or (nil? guard) (guard v)))))
 
 (defn dynamic-type?
   "Check if T is :dynamic or :any type."
@@ -269,6 +298,18 @@ Returns the (possibly wrapped) value.
                         (string blame ":return (function blamed)")))))))
         (let [pred (type-predicate target-type)]
           (unless (pred value)
-            (errorf "Type error (%s): expected %q, got %s"
-                    blame target-type (describe value)))))))
+            (let [guard (guard-of target-type)]
+              (if (and guard (= :keyword (type target-type))
+                       (shape-satisfied? target-type value)
+                       (not (guard value)))
+                # guard failed but shape is valid: say so precisely
+                (errorf "Type error (%s): guard predicate failed. fields may be incorrect."
+                        blame)
+                (errorf "Type error (%s): expected %q, got %s"
+                        blame target-type (describe value)))))
+          # shape is valid; run the guard separately when one is registered
+          (let [guard (guard-of target-type)]
+            (when (and guard (not (guard value)))
+              (errorf "Type error (%s): guard predicate failed. fields may be incorrect."
+                      blame)))))))
   result)

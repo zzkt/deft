@@ -6,14 +6,14 @@
 (var pass-count 0)
 (var fail-count 0)
 
-(defn assert [label got expected]
+(defn cassert [name got expected]
   (if (= got expected)
-    (do (++ pass-count) (print "  ✓ " label))
+    (do (++ pass-count) (print "  ✓ " name))
     (do (++ fail-count)
-      (print "  ✗ " label ": expected " (string expected) ", got " (string got)))))
+      (print "  ✗ " name ": expected " (string expected) ", got " (string got)))))
 
-(defmacro assert-err [label body]
-  ~(assert ,label
+(defmacro cassert-err [name body]
+  ~(cassert ,name
            (not= nil
              (try (do ,body nil) ([e] e)))
            true))

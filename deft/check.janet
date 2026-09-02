@@ -17,9 +17,9 @@ Returns a list of error strings.
             return-type (if (= body-start 4) (get form 3) :dynamic)
             body (array/slice form body-start)]
         (when (and name args (tuple? args))
-          (let [pairs (partition 2 args)
-                arg-names (map first pairs)
-                arg-types (map last pairs)
+          (let [p2 (partition 2 args)
+                arg-names (map first p2)
+                arg-types (map last p2)
                 env (fresh-arg-env arg-names arg-types)]
             (each body-form body
               (let [chk (infer-chk-form env body-form return-type)]

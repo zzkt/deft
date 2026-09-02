@@ -9,18 +9,18 @@
 # sett with deftv
 (deftv counter :number 0)
 (sett counter 10)
-(assert "sett preserves type" counter 10)
-(assert-err "sett rejects type mismatch" (sett counter "bad"))
+(cassert "sett preserves type" counter 10)
+(cassert-err "sett rejects type mismatch" (sett counter "bad"))
 
 # sett on var not created with deftv. no type check.
 (var plain 0)
 (sett plain "now-string")
-(assert "sett on untyped var" plain "now-string")
+(cassert "sett on untyped var" plain "now-string")
 
 # sett with nil
 (deftv nullable :number 0)
 (sett nullable 42)
-(assert "sett nil-type" nullable 42)
+(cassert "sett nil-type" nullable 42)
 
 
 (print "\n* sett — with inference in deftn")
@@ -33,7 +33,7 @@
   (sett tmp 10)
   (+ tmp 1))
 
-(assert "infer-from-sett result" (infer-from-sett 1) 11)
+(cassert "infer-from-sett result" (infer-from-sett 1) 11)
 
 # sett literal helps infer types of args used in arithmetic
 (deftn infer-via-sett-param [x y]
@@ -41,10 +41,10 @@
   (sett tmp 10)
   (+ tmp y))
 
-(assert "infer-via-sett-param" (infer-via-sett-param 1 5) 15)
+(cassert "infer-via-sett-param" (infer-via-sett-param 1 5) 15)
 
 # y is inferred as :number from (+ tmp y), so passing a string errors
-(assert-err "infer-via-sett catches param mismatch" (infer-via-sett-param 1 "bad"))
+(cassert-err "infer-via-sett catches param mismatch" (infer-via-sett-param 1 "bad"))
 
 # sett with mutable type inference
 (deftn sett-mutable-infer [init]
@@ -53,7 +53,7 @@
   (put data :b 2)
   data)
 
-(assert "sett mutable inference" (get (sett-mutable-infer @{}) :b) 2)
+(cassert "sett mutable inference" (get (sett-mutable-infer @{}) :b) 2)
 
 # sett with the same type should be fine
 (deftn sett-same-type [init]
@@ -62,7 +62,7 @@
   (sett tmp 20)
   (+ tmp 1))
 
-(assert "sett same type ok" (sett-same-type 0) 21)
+(cassert "sett same type ok" (sett-same-type 0) 21)
 
 (print "\n* sett — via deftn with sett of plain var")
 
@@ -75,7 +75,7 @@
   (sett tmp "hello")
   tmp)
 
-(assert "sett with inference off" (sett-any 1) "hello")
+(cassert "sett with inference off" (sett-any 1) "hello")
 
 (enable-inference true)
 
@@ -86,14 +86,14 @@
   (lett [y :number x]
     (+ y 1)))
 
-(assert "lett explicit type" (lett-infer-explicit 5) 6)
+(cassert "lett explicit type" (lett-infer-explicit 5) 6)
 
 # lett with literal value should infer type from the value
 (deftn lett-infer-from-literal []
   (lett [(y "hello")]
     (string y " world")))
 
-(assert "lett literal type" (lett-infer-from-literal) "hello world")
+(cassert "lett literal type" (lett-infer-from-literal) "hello world")
 
 # lett sequential bindings — earlier bindings inform later ones
 (deftn lett-sequential-infer [x]
@@ -101,14 +101,14 @@
               b :number (+ a 1)]
     (+ b 2)))
 
-(assert "lett sequential inference" (lett-sequential-infer 5) 8)
+(cassert "lett sequential inference" (lett-sequential-infer 5) 8)
 
 # lett tuple syntax with inference
 (deftn lett-tuple-infer [x]
   (lett [(y :number x)]
     (+ y 1)))
 
-(assert "lett tuple syntax" (lett-tuple-infer 10) 11)
+(cassert "lett tuple syntax" (lett-tuple-infer 10) 11)
 
 # lett with string ops using inference
 (deftn lett-string-concat [x]
@@ -116,7 +116,7 @@
               t :string (string s "!")]
     t))
 
-(assert "lett string op" (lett-string-concat "hi") "hi!")
+(cassert "lett string op" (lett-string-concat "hi") "hi!")
 
 # lett catches type mismatch at runtime even when binding references another binding
 (deftn lett-cross-binding [x]
@@ -124,7 +124,7 @@
               b :string a]
     b))
 
-(assert-err "lett cross-binding type mismatch" (lett-cross-binding 42))
+(cassert-err "lett cross-binding type mismatch" (lett-cross-binding 42))
 
 (print "\n* sett — static checks via check-form")
 
@@ -134,7 +134,7 @@
      (var tmp x)
      (sett tmp 10)
      tmp)))
-(assert "deftcheck sett clean" (= (length dc1) 0) true)
+(cassert "deftcheck sett clean" (= (length dc1) 0) true)
 
 # mixed inference modes
 (enable-inference false)
@@ -143,7 +143,7 @@
   (sett tmp 42)
   tmp)
 
-(assert "no inference sett passes" (no-infer-sett 1) 42)
+(cassert "no inference sett passes" (no-infer-sett 1) 42)
 (enable-inference true)
 
 (print-results)

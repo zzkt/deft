@@ -23,7 +23,7 @@
     (boolean? v) (string v)
     (number? v) (string v)))
 
-(defn pp
+(defn pp :shadow
   "Pretty-print to stdout, using :pp for records."
   [x]
   (if (table? x)
