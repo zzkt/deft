@@ -3,7 +3,6 @@
 #+title: deft: gradual typing for Janet
 
 * Overview
-
 #+begin_quote
 The art of progress is to preserve order amid change, and to preserve change amid order.
 
@@ -63,7 +62,6 @@ There are some deft forms that share names with declarations in the Janet API (n
 #+end_src
 
 * Defining and using types
-
 #+begin_quote
 I knew that signs also allow others to judge the one who makes them, and that in the course of a galactic year tastes and ideas have time to change, and the way of regarding the earlier ones depends on what comesafterwards.
 
@@ -73,7 +71,6 @@ I knew that signs also allow others to judge the one who makes them, and that in
 Type annotations can be used by adding a keyword immediately after a name wherever it's declared. e.g. =(define five :number 5)= any of the built-in Janet types can be used, and new types can be created with =deftype=.
 
 *** =define=
-
 #+begin_quote
 that finds the nameform that whets the wits
 
@@ -209,27 +206,7 @@ Further: [cite:@siek-taha-2006] on the consistency relation extended to custom p
 ** Typed functions
 *** =deftfn=
 
-Define a gradually typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. =deftfn= inserts runtime arg and return checks but does *not* register an =:fn= type scheme, so =fn-type-of= will not work for functions defined with =deftfn= (use =deftn= or =define= if you need to query a function's type at runtime).
-
-A trailing =&= ignores extra arguments (see Janet's "Ignoring extra arguments"), and a trailing =& rest-name= collects the rest into an untyped tuple.
-
-#+begin_src janet
-(deftfn add [x :number y :number] :number
-  (+ x y))
-
-(deftfn greet [name :string] :string
-  (string "Hello, " name "!"))
-
-# Ignoring extra arguments
-(deftfn ignore-extra [x :number &] :number
-  (+ x 1))
-(ignore-extra 1 2 3 4 5)  # => 2
-
-# Variadic — the rest tuple is untyped
-(deftfn total [x :number & xs] :number
-  (+ x (length xs)))
-(total 1 2 3 4)  # => 4
-#+end_src
+Define a gradually typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. =deftfn= inserts runtime argument and return checks but does *not* register a =:fn= type scheme, so =fn-type-of= will not work for functions defined with =deftfn=. Use =deftn= or =define= if you need to query a function's type at runtime.
 
 *** =deftfn-=
 
@@ -238,34 +215,6 @@ Like =deftfn= but defines a private function (c.f =defn-=)
 *** optional, keyword and ignored arguments
 
 Following the semantics of of Janet's =fn=, arguments to =define= can include keywords and optional arguments.
-
-Optional arguments are declared after ~&opt~ and default to ~nil~
-#+BEGIN_SRC janet
-(define options [a b c &opt d e f] :number
-  (default d 10)
-  (default e 11)
-  (default f 12)
-  (+ a b c d e f))
-
-(options 1 2 3)         # => 39
-(options 1 2 3 4 5 6)   # => 21
-#+END_SRC
-
-Variadic functions can be defined by including the =&= symbol for rest args. The rest tuple is untyped (i.e. =:dynamic=) by default.
-#+BEGIN_SRC janet
-(define long [x :number & xs] :number
-  (+ x (length xs)))
-
-(long 1 2 3 4)  # => 4
-#+END_SRC
-
-It is also possible to ignore extra arguments using an unnamed =&= at the end of the argument list.
-#+BEGIN_SRC janet
-(deftfn ignore-extra [x :number &] :number
-  (+ x 11))
-
-(ignore-extra 1 2 3 4 5)  # => 12
-#+END_SRC
 
 Optional arguments with =&opt= default to =nil= and work as expected with the =default= macro
 #+BEGIN_SRC janet
@@ -278,26 +227,6 @@ Optional arguments with =&opt= default to =nil= and work as expected with the =d
 (opt 1 2 3 4 5 6)   # => 21
 #+END_SRC
 
-Variadic functions gather 'rest' into a tuple, adding a type after the rest name types each element
-#+BEGIN_SRC janet
-(deftn sum [& xs :number]
-  (var total 0)
-  (each n xs (+= total n))
-  total)
-(sum 1 2 3)  # => 6
-
-(deftn mix [x :number &opt y :number & tail :number]
-  (default y 0)
-  (+ x y (length tail)))
-#+END_SRC
-
-Ignoring extra arguments (with a bare =&=)
-#+BEGIN_SRC janet
-(deftn ignore-extra [x :number &]
-  (+ x 1))
-(ignore-extra 1 2 3 4 5)  # => 2
-#+END_SRC
-
 Keyword arguments with =&keys= bind named keyword parameters to local symbols
 #+BEGIN_SRC janet
 (deftn greet [name :string &keys {:greeting :string}]
@@ -308,6 +237,39 @@ Keyword arguments with =&keys= bind named keyword parameters to local symbols
   (default y 0)
   (string color ": " (+ x y)))
 (draw 1 2 :color "red")  # => "red: 3"
+#+END_SRC
+
+Variadic functions can be defined by including the =&= symbol for rest args. The rest tuple is untyped (i.e. =:dynamic=) by default.
+#+BEGIN_SRC janet
+(deftn sum
+  [& xs :number]
+  (var total 0)
+  (each n xs (+= total n))
+  total)
+(sum 1 2 3)  # => 6
+
+(deftn mix
+  [x :number &opt y :number & tail :number]
+  (default y 0)
+  (+ x y (length tail)))
+#+END_SRC
+
+Adding a type annotation after the rest name types all the rest elements.
+#+BEGIN_SRC janet
+(define long
+  [x :number & xs] :number
+  (+ x (length xs)))
+
+(long 1 2 3 4)  # => 4
+#+END_SRC
+
+It is also possible to ignore extra arguments using an unnamed =&= at the end of the argument list.
+#+BEGIN_SRC janet
+(deftfn ignore-extra
+  [x :number &] :number
+  (+ x 11))
+
+(ignore-extra 1 2 3 4 5)  # => 12
 #+END_SRC
 
 ** Typed values
@@ -384,11 +346,11 @@ Compound type expressions can be used in parameter or return positions without a
 
 *** =deftrecord=
 
-Define a named structural record type with typed field declarations. A definition will also generate a constructor, accessors, mutators (if mutable), and an optional =:pp= pretty-print handler.
+Define a named structural record type with typed field declarations usinf =deftrecord=. A definition will generate a constructor, accessors, mutators (if mutable), and an optional =:pp= pretty-print handler.
 
 *Generated functions*
 |--------------------+--------------------------|
-| Symbol             | Purpose                  |
+| *Symbol*             | *Purpose*                  |
 |--------------------+--------------------------|
 | =make-{name}=        | Constructor (validates)  |
 | ={name}-{field}=     | Accessor                 |
@@ -400,8 +362,8 @@ A record declaration consists of a keyword (the type) and field clauses. Require
 *Field clauses*
 - =(field name type)= — required positional argument
 - =(optional name type)= — optional positional argument (defaults to =nil=), can also be set via =:keyword value=
-- =(guard pred-fn)= — optional guard predicate (for any extra validation)
-- =(=print handler-fn)= — optional custom pretty-print handler (for string based output)
+- =(guard predicate-function)= — optional guard predicate (for any extra validation)
+- =(=print handler-function)= — optional custom pretty-print handler (for string based output)
 
 #+BEGIN_SRC janet
 (deftrecord :person
@@ -429,7 +391,7 @@ If a field is mutable, a mutator can be used to set the value of the field.
 (set-person-age p1 31) # returns {:name "Alice" :age 31 :title nil :nickname nil}
 #+END_SRC
 
-A definition can include guard predicates which have access to declared fields. A guard predicate follows the same semantics as a type predicate. A guard can extend the validation of a single field (c.f. type narrowing) and also validate relations between fields. e.g. a guard can be used to check that an =end= field of type =:datetime= occurs later than the =start= field.
+A definition can include guard predicates which have access to the declared fields. A guard predicate follows the same semantics as a type predicate. A guard can extend the validation of a single field (c.f. type narrowing) and also validate relations between fields. e.g. a guard can be used to check that an =end= field of type =:datetime= occurs later than the =start= field.
 
 #+begin_src janet
 (deftrecord :timeframe
@@ -445,14 +407,13 @@ A definition can include guard predicates which have access to declared fields. 
 #+END_SRC
 
 *** ~defenum~
-
 #+begin_quote
 Three quarks for Muster Mark!
 
 —James Joyce, Finnegans Wake.
 #+end_quote
 
-Define an enumeration type using a string to value map. Values can be of any =:type=. =defenum= registers a type predicate and generates an accessor for looking up values by key. The functions '<name>-extend' and '<name>-remove' are also generated and can be used to modify the enum.
+Use =defenum= to define an enumeration type using a string to value map. Values can be of any =:type=. =defenum= registers a type predicate and generates an accessor for looking up values by key. The functions =<name>-extend= and =<name>-remove= are also generated and can be used to modify the enum.
 
 #+begin_src janet
 (defenum :colour {"red" 1 "green" 2 "blue" 3})
@@ -460,11 +421,11 @@ Define an enumeration type using a string to value map. Values can be of any =:t
 
 *Generated functions*
 |---------------+-----------------------------------|
-| Symbol        | Purpose                           |
+| *Symbol*        | *Purpose*                           |
 |---------------+-----------------------------------|
-| ={name}=        | Lookup value by key               |
-| ={name}-extend= | Add or update a key-value pair    |
-| ={name}-remove= | Remove a key and return its value |
+| =<name>=        | Lookup value by key               |
+| =<name>-extend= | Add or update a key-value pair    |
+| =<name>-remove= | Remove a key and return its value |
 |---------------+-----------------------------------|
 
 The accessor function looks up a value in the enumeration table by key and returns the associated value or =nil=.
@@ -474,14 +435,14 @@ The accessor function looks up a value in the enumeration table by key and retur
 (colour "pink")   # => nil
 #+END_SRC
 
-The ={name}-extend= function adds or updates a key-value pair in the enumeration. The key must be a =:string= and the value must match the declared =:type=
+The =<name>-extend= function adds or updates a key-value pair in the enumeration. The key must be a =:string= and the value must match the declared =:type=
 
 #+BEGIN_SRC janet
 (colour-extend "orange" 4)   # adds "orange" to 4 mapping
 (colour "orange")            # returns 4
 #+END_SRC
 
-The ={name}-remove= function removes a key from the enumeration and returns its previous value (or ~nil~ if not found).
+The =<name>-remove= function removes a key from the enumeration and returns its previous value (or ~nil~ if not found).
 
 #+BEGIN_SRC janet
 (colour-remove "green")      # removes "green", returns 2
@@ -797,7 +758,6 @@ Further: [cite:@siek-vachharajani-2008] unification-based inference for gradual 
 [cite:dunfield-krishnaswami-2021] Comprehensive survey of bidirectional type systems, covering the dual-mode (inference/checking) organisation used in deft; [cite:@miyazaki-2019] dynamic type inference for gradual Hindley–Milner.
 
 * Features
-
 #+begin_quote
 Thus the unfacts, did we possess them, are too imprecisely few to warrant our certitude
 
@@ -807,7 +767,6 @@ Thus the unfacts, did we possess them, are too imprecisely few to warrant our ce
 deft implements a gradual typing approach to integrating static and dynamic typing within the same language.
 
 ** Blame
-
 #+begin_quote
 Without Contraries is no progression.
 
@@ -834,7 +793,6 @@ The consistency relation is a core technical feature of gradual typing. It relie
 Further: [cite:@siek-taha-2006] also; [cite:@garcia-2016] for the abstract specification of consistency.
 
 ** Function Contracts
-
 #+begin_quote
 I had developed a system of my own, to shut him up: 'Oh, no? And what does it mean then, in your opinion?' He kept quiet: lacking imagination as he did, when a word began to have one meaning it promptly lost all the others.
 
@@ -859,7 +817,6 @@ Note: arrow notation can use either =->= or =:->= as preferred, however this is 
 Further: [cite:@findler-felleisen-2002] higher-order contract system;  [cite:@wadler-findler-2009] on blame for higher-order casts; [cite:@siek-garcia-taha-2009] on the design space of higher-order casts.
 
 ** Occurrence Typing & Narrowing
-
 #+begin_quote
 All that you touch you Change. All that you Change changes you.
 
@@ -974,7 +931,6 @@ In =if= branches, the condition can be used to narrow variable types in each bra
 #+end_src
 
 * Ways of Working
-
 #+begin_quote
 Nothing is so painful to the human mind as a great and sudden change.
 
@@ -1066,7 +1022,6 @@ The checker identifies:
 Further: [cite:@rastogi-2015] ahead-of-time checking for hybrid type systems; [cite:@siek-taha-2006] the consistency relation checked at compile time.
 
 ** Blame-driven debugging
-
 #+begin_quote
 Everything is real and not real, both real and not real, neither real nor not real.
 
@@ -1100,7 +1055,6 @@ Errors can be bisected by disabling & enabling type checking. Turn off all runti
 Further: [cite:@wadler-findler-2009] for blame calculus; [cite:@findler-felleisen-2002] for the contract system and blame tags.
 
 ** Progressive typing by module boundary
-
 #+begin_quote
 The Hive is an idea that shapes reality.
 
