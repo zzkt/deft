@@ -85,8 +85,8 @@ Universal definition dispatcher, =define= is used to define functions and variab
 A *typed function* expects (optional) type declarations after each arg, and (optional) return type.
 #+BEGIN_SRC emacs-lisp
 (define add
-        [x :number y :number] :number
-        (+ x y))
+  [x :number y :number] :number
+  (+ x y))
 #+END_SRC
 
 A docstring can be included before the argument vector of function definitions (same as docstrings in =defn=)
@@ -114,7 +114,8 @@ An *untyped function* without type declarations uses inference to determine arg 
 
 typed and untyped params can be mixed
 #+begin_src janet
-(define flex [a :number b c :string] :string
+(define flex
+  [a :number b c :string] :string
   (string (+ a b) " " c))
 #+end_src
 
@@ -137,11 +138,7 @@ If any parameter in the arg vector carries a type annotation, all parameters are
 
 Typed function bodies are wrapped in arg casts (checking each argument) and a return cast (checking the result). On failure, blame is assigned to the caller (bad argument) or the function (bad return).
 
-<<<<<<< HEAD
-The =define= macro replaces the need to choose between =defn=, =deftfn=, =deftn=, =def=, and =deftval= and provides a smooth (gradual) way of moving from untyped to typed code and back.
-=======
 The =define= macro replaces the need to choose between ~defn~, ~deftfn~, ~var, ~def~, and ~deftval~ and provides a smooth (gradual) way of moving from untyped to typed code and back.
->>>>>>> t0
 
 |-----------------------------------------+----------------------------------------------|
 | Shape                                   | Behaviour                                    |
@@ -212,13 +209,9 @@ Further: [cite:@siek-taha-2006] on the consistency relation extended to custom p
 ** Typed functions
 *** =deftfn=
 
-<<<<<<< HEAD
 Define a gradually typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. =deftfn= inserts runtime arg and return checks but does *not* register an =:fn= type scheme, so =fn-type-of= will not work for functions defined with =deftfn= (use =deftn= or =define= if you need to query a function's type at runtime).
 
 A trailing =&= ignores extra arguments (see Janet's "Ignoring extra arguments"), and a trailing =& rest-name= collects the rest into an untyped tuple.
-=======
-Define a typed function. Every parameter *must* be followed by a type spec, the return type comes after the parameter vector. ~deftfn~ inserts runtime arg and return checks but does *not* register a ~:fn~ type scheme (so ~fn-type-of~ will not work for functions defined with ~deftfn~, use ~define~ if you need to query a function's type at runtime).
->>>>>>> t0
 
 #+begin_src janet
 (deftfn add [x :number y :number] :number
@@ -242,25 +235,11 @@ Define a typed function. Every parameter *must* be followed by a type spec, the 
 
 Like =deftfn= but defines a private function (c.f =defn-=)
 
-<<<<<<< HEAD
-*** =deftn=
-
-Define a function with optional type annotations. Parameters without an explicit type are inferred from usage in the function body (when inference is enabled) or default to =:dynamic=. The return type is optional and defaults to =:dynamic= when omitted.
-
-typed and untyped params can be mixed
-#+begin_src janet
-(deftn flex [a :number b c :string] :string
-  (string (+ a b) " " c))
-#+end_src
-
-...and without annotations =deftn= behaves the same as a plain =defn=
-=======
 *** optional, keyword and ignored arguments
 
 Following the semantics of of Janet's =fn=, arguments to =define= can include keywords and optional arguments.
 
 Optional arguments are declared after ~&opt~ and default to ~nil~
->>>>>>> t0
 #+BEGIN_SRC janet
 (define options [a b c &opt d e f] :number
   (default d 10)
@@ -405,11 +384,7 @@ Compound type expressions can be used in parameter or return positions without a
 
 *** =deftrecord=
 
-<<<<<<< HEAD
 Define a named structural record type with typed field declarations. A definition will also generate a constructor, accessors, mutators (if mutable), and an optional =:pp= pretty-print handler.
-=======
-Define a named structural record type with typed field declarations using =deftrecord=. A definition will generate a constructor, accessors, mutators (if mutable), and an optional ~:pp~ pretty-print handler.
->>>>>>> t0
 
 *Generated functions*
 |--------------------+--------------------------|
@@ -423,17 +398,10 @@ Define a named structural record type with typed field declarations using =deftr
 A record declaration consists of a keyword (the type) and field clauses. Required fields are declared first, then optional, then keyword pairs.
 
 *Field clauses*
-<<<<<<< HEAD
 - =(field name type)= — required positional argument
 - =(optional name type)= — optional positional argument (defaults to =nil=), can also be set via =:keyword value=
 - =(guard pred-fn)= — optional guard predicate (for any extra validation)
-- =(print handler-fn)= — optional custom pretty-print handler (for string based output)
-=======
-- ~(field name type)~ — required positional argument
-- ~(optional name type)~ — optional positional argument (defaults to ~nil~), can also be set via ~:keyword value~
-- ~(guard pred-fn)~ — optional guard predicate (for any extra validation)
-- ~(print handler-fn)~ — optional custom pretty-print handler (for string based output)
->>>>>>> t0
+- =(=print handler-fn)= — optional custom pretty-print handler (for string based output)
 
 #+BEGIN_SRC janet
 (deftrecord :person
@@ -445,13 +413,8 @@ A record declaration consists of a keyword (the type) and field clauses. Require
 
 A generated constructor can be used to create new records
 #+BEGIN_SRC janet
-<<<<<<< HEAD
-(def p1 (make-person "Alice" 30)) # only required fields
-(def p2 (make-person "Robert');" 13 "Mr." "Little Bobby Tables")) # optional positional
-=======
 (def p1 (make-person "Alice" 48)) # with only required fields
 (def p2 (make-person "Robert');" 19 "Mr." "Little Bobby Tables")) # optional positional
->>>>>>> t0
 (def p3 (make-person "Frederick" 35 :nickname "Fred")) # keyword
 (def p4 (make-person "Diindiisi" 73 "Dr." :nickname "Jay")) # mixed
 #+END_SRC
@@ -475,9 +438,6 @@ A definition can include guard predicates which have access to declared fields. 
   (guard (fn [v] (> (get v :end) (get v :start)))))
 #+end_src
 
-<<<<<<< HEAD
-*** =defenum=
-=======
 #+BEGIN_SRC janet
 (make-timeframe  "2026-01-01T22:23:46" "2025-W17")
 
@@ -485,7 +445,6 @@ A definition can include guard predicates which have access to declared fields. 
 #+END_SRC
 
 *** ~defenum~
->>>>>>> t0
 
 #+begin_quote
 Three quarks for Muster Mark!
@@ -515,22 +474,14 @@ The accessor function looks up a value in the enumeration table by key and retur
 (colour "pink")   # => nil
 #+END_SRC
 
-<<<<<<< HEAD
-The =-extend= function adds or updates a key-value pair in the enum table. The key must be a =:string= and the value must match the declared =:type=
-=======
 The ={name}-extend= function adds or updates a key-value pair in the enumeration. The key must be a =:string= and the value must match the declared =:type=
->>>>>>> t0
 
 #+BEGIN_SRC janet
 (colour-extend "orange" 4)   # adds "orange" to 4 mapping
 (colour "orange")            # returns 4
 #+END_SRC
 
-<<<<<<< HEAD
-The =-remove= function removes a key from the enum table and returns its previous value (or =nil= if not found).
-=======
 The ={name}-remove= function removes a key from the enumeration and returns its previous value (or ~nil~ if not found).
->>>>>>> t0
 
 #+BEGIN_SRC janet
 (colour-remove "green")      # removes "green", returns 2
@@ -551,15 +502,9 @@ Mutation of the enumeration is reflected immediately in the accessor function an
 #+END_SRC
 
 ** Type properties, checking and inference
-<<<<<<< HEAD
 *** =type= (extended)
 
 Returns the type of a value. For values tagged with a user defined type it returns that tag, otherwise falls through to Janet's built-in =type=.
-=======
-*** ~type~ (extended)
-
-Returns the type of a value. For values tagged with a user defined type it returns that tag, otherwise falls through to Janet's built-in ~type~.
->>>>>>> t0
 
 #+begin_src janet
 (deftval three :positive 3)
@@ -599,11 +544,7 @@ Runtime type check. Tests a value directly against a type predicate, bypassing a
 
 *** =type==
 
-<<<<<<< HEAD
-Check if a value's type matches a given type. Uses the extended =type= that accounts for user-declared types.
-=======
 Check if a value's type matches a given type. Uses the extended ~type~ to include user-declared types.
->>>>>>> t0
 
 #+begin_src janet
 (deftval three :positive 3)
@@ -623,11 +564,7 @@ Return the keyword name for a type value, or =nil= for anonymous predicates.
 
 *** =consistent?=
 
-<<<<<<< HEAD
-The consistency relation from Siek & Taha 2006. =:dynamic= is consistent with every type, otherwise requires equality. Used internally as the core relation in gradual type checking.
-=======
 The consistency relation from Siek & Taha 2006. The type ~:dynamic~ is consistent with every type, otherwise it requires equality. Used internally as the core relation for gradual type checking.
->>>>>>> t0
 
 #+begin_src janet
 (consistent? :number :number)  # true
@@ -663,11 +600,7 @@ Enable or disable bidirectional type inference for unannotated parameters (defau
 
 When enabled, =deftn= and =define= run inference on unannotated parameters using a dual-mode bidirectional system, known types propagate downward from operator type schemes and declared parameter types (checking mode), while unknown types are synthesized upward from usage patterns (inference mode).
 
-<<<<<<< HEAD
 Type variables are resolved through unification with gradual semantics (i.e. =:dynamic= unifies with anything) and unresolved variables default to =:dynamic=. The resulting inferred types are used to add runtime casts at the function boundaries, preserving blame semantics of explicit annotations.
-=======
-Type variables are resolved through unification with gradual semantics (i.e. =:dynamic= unifies with anything, and unresolved variables are initially typed as ~:dynamic~.) The resulting inferred types are used to add runtime casts at the function boundaries, preserving blame semantics of explicit annotations.
->>>>>>> t0
 
 When disabled, all unannotated parameters default to =:dynamic= so no inference or type-variable resolution occurs.
 
@@ -676,13 +609,9 @@ When disabled, all unannotated parameters default to =:dynamic= so no inference 
 (enable-inference true)   # re-enable
 #+end_src
 
-<<<<<<< HEAD
 *** =type?=
 
-Check if a value is a registered or built-in type keyword. Returns =true= for =:number=, =:string=, =:fn= contracts, and user-defined types (via =deftype=, =defenum=, =deftrecord=). Returns =false= for non-type values.
-=======
 Check if a value is a registered or built-in type. Returns ~true~ for e.g. ~:number~, ~:string~, function contracts, and user-defined types (via ~deftype~, ~defenum~, ~deftrecord~). Returns ~false~ for non-type values.
->>>>>>> t0
 
 #+begin_src janet
 (type? :number)      # => true
@@ -712,45 +641,56 @@ Retrieve the registered type scheme (function contract) for a function at runtim
 #+end_src
 
 The =&opt=, =&keys= and rest-argument slots are folded into the function scheme as trailing argument types. An untyped rest slot is =:dynamic= and a typed rest slot records its element type.
+
+Optional arguments
 #+BEGIN_SRC janet
-# optional arguments
 (deftn opt [x :number &opt y :number]
   (default y 0)
   (+ x y))
 (fn-type-of 'opt)
 # => (:fn @[:number :number] :dynamic)
+#+END_SRC
 
-# ignoring extra arguments
-(deftn ignore-extra [x :number &] :number
-  (+ x 1))
-(fn-type-of 'ignore-extra)
-# => (:fn @[:number :dynamic] :number)
-
-# untyped variadic
+Untyped variadic function
+#+BEGIN_SRC janet
 (deftn variadic [x :number & xs] :number
   (+ x (length xs)))
 (fn-type-of 'variadic)
 # => (:fn @[:number :dynamic] :number)
+#+END_SRC
 
-# typed variadic — the rest element type
+Typed variadic function
+#+BEGIN_SRC janet
 (deftn sum [& nums :number] :number
   (length nums))
 (fn-type-of 'sum)
 # => (:fn @[:number] :number)
+#+END_SRC
 
-# keyword arguments
+Keyword arguments
+#+BEGIN_SRC janet
 (deftn greet2 [name :string &keys {:greeting :string}] :string
   (string greeting ", " name "!"))
 (fn-type-of 'greet2)
 # => (:fn @[:string :string] :string)
+#+END_SRC
 
-# positional + optional + typed rest
+Positional, optional, and typed rest arguments
+#+BEGIN_SRC janet
 (deftn mix [x :number &opt y :number & tail :number] :number
   (default y 0)
   (+ x y (length tail)))
 (fn-type-of 'mix)
 # => (:fn @[:number :number :number] :number)
 #+end_src
+
+Ignored extra arguments
+#+BEGIN_SRC janet
+(deftn ignore-extra [x :number &] :number
+  (+ x 1))
+(fn-type-of 'ignore-extra)
+# => (:fn @[:number :dynamic] :number)
+#+END_SRC
 
 *** =deftcheck= (static checking)
 
@@ -775,11 +715,7 @@ See =check-form= below for the equivalent runtime function and its error/return 
 
 *** =check-form=  (runtime checking)
 
-<<<<<<< HEAD
-Runtime function that checks a single deft form using bidirectional inference. Returns an array of error strings (empty means no errors). Useful for programmatic or REPL-driven validation.
-=======
 Runtime function that checks a single deft form using bidirectional inference. Returns an array of error strings (the array is empty when there are no errors). Useful for programmatic or REPL driven validation.
->>>>>>> t0
 
 #+begin_src janet
 (check-form '(deftn add [a b] (+ a b)))                  # => @[]
@@ -815,11 +751,7 @@ Like =infer-expression= but returns a table with =:type= containing the inferred
 
 *** =infer-assert-type= (compile-time assertion)
 
-<<<<<<< HEAD
-An assert inside a =deftn= body that ensures the inferred type of an expression matches an expected type. Errors at macro-expansion time if the assertion fails.
-=======
 An assert inside a =define= body that ensures the inferred type of an expression matches an expected type. Errors at macroexpansion time if the assertion fails.
->>>>>>> t0
 
 #+begin_src janet
 (define safe-add [x y]
@@ -909,19 +841,11 @@ I had developed a system of my own, to shut him up: 'Oh, no? And what does it me
 —Italo Calvino, Cosmicomics, "A Sign in Space"
 #+end_quote
 
-<<<<<<< HEAD
-Higher-order function types =(:fn [:a :b -> :return])= wrap arguments in contracts, each call rechecks args and return types. A contract can be used to type a function. A contract can also be used as a return type (i.e. function returning function) and infer the type of values it operates on.
-
-While it may be possible to define /value-dependent predicates/ (e.g. to implement Π and Σ types) it's currently fragile and error prone.
-
-Note: arrow notation can use either '->' or ':->' as preferred, however they are only syntactic and are not a type class, nor first-class arrows.
-=======
 Higher-order function types ~(:fn [:a :b -> :return])~ can be used to wrap arguments in contracts, each call (re)checks args and return types. A contract can be used to type a function. A contract can also be used as a return type (i.e. function that returns a function) and used to infer the type of values it operates on.
 
 While it may be possible to define /value-dependent predicates/ (e.g. to implement Π and Σ types) it's currently fragile and error prone.
 
 Note: arrow notation can use either =->= or =:->= as preferred, however this is only syntactic and not a type class, nor first-class arrows.
->>>>>>> t0
 
 #+BEGIN_SRC janet
 (deftfn map2
@@ -942,11 +866,7 @@ All that you touch you Change. All that you Change changes you.
 —Octavia Butler, Parable of the Sower
 #+end_quote
 
-<<<<<<< HEAD
-At some points of evaluation (e.g. arithmetic operations) and flow control (e.g. =if= branches) a variable's type can be treated as more specific (narrowed) based on use and predicate checks (=number?=, =string?=, etc.) e.g. in the true branch of =(= :keyword x)=, =x= is treated as =:keyword=.
-=======
 At some points of evaluation (e.g. arithmetic operations) and flow control (e.g. ~if~ branches) a variable's type can be treated as more specific (narrowed) based on use and predicate checks (~number?~, ~string?~, ~tuple?~, etc.) e.g. in the true branch of ~(string? x)~, ~x~ is treated as ~:string~.
->>>>>>> t0
 
 deft supports several narrowing patterns...
 
@@ -1018,11 +938,7 @@ Further: [cite:@tobin-hochstadt-felleisen-2008] occurrence typing in Typed Schem
 
 ** Local Type Inference
 
-<<<<<<< HEAD
-Unannotated parameters in =deftn= and =define= are inferred from usage in the function body, e.g. arithmetic operators (=+=, =-=, =*=, =/=) imply =:number=, the =string= function implies =:string=, etc.
-=======
 Unannotated parameters in ~define~ are inferred from usage in the function body, e.g. arithmetic operators (~+~, ~-~, ~*~, ~/~) imply ~:number~, the ~string~ function implies ~:string~, etc.
->>>>>>> t0
 
 #+begin_src janet
 (deftn add [x y] (+ x y))                  # x & y are :number :number, return is :number
