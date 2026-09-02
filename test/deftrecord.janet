@@ -106,9 +106,17 @@
 
 (print "\n* deftrecord: pp handler")
 
-(def pp-str (pp-str (make-point 3 4)))
-(cassert "pp-str contains point" (string/find "point" pp-str) 0)
-(cassert "pp-str contains x=" (not= nil (string/find "x=" pp-str)) true)
+(def default-pp (pp-str (make-point 3 4)))
+(cassert "default pp renders full record" (= default-pp "point(x=3, y=4)") true)
+(cassert "default pp shows field x" (string/find "x=3" default-pp) 6)
+(cassert "default pp shows field y" (string/find "y=4" default-pp) 11)
+
+(deftrecord :widget
+  (field label :string)
+  (print (fn [r] (string "WIDGET:" (get r :label)))))
+
+(def custom-pp (pp-str (make-widget "gizmo")))
+(cassert "custom printer is invoked" (= custom-pp "WIDGET:gizmo") true)
 
 (print "\n* deftrecord: typed function with record arg")
 

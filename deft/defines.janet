@@ -230,11 +230,11 @@ No type annotation, var.```
                 tag-value-fn (deft-ref 'tag-value)
                 v (gensym) val (rest (+ off 1))
                 def-or-var (if (immutable? second) 'def 'var)
-                type-form (if (compound-type? second) (tuple 'quote second) second)]
+                type-form (if (compound-type? second) (tuple 'quote second) second)
+                blame (string name " definition")]
             (tuple def-or-var name
                    (tuple 'let (array v val)
-                          (tuple cast-fn v type-form
-                                 (string (string name " definition")))
+                          (tuple cast-fn v type-form blame)
                           (tuple tag-value-fn v type-form)
                           v)))
           (apply tuple 'var name (array/slice rest off)))))))
@@ -257,11 +257,12 @@ No type annotation, var.```
   "Define an immutable typed value."
   [name T value]
   (let [cast-fn (deft-ref 'cast)
-        tag-value-fn (deft-ref 'tag-value)]
+        tag-value-fn (deft-ref 'tag-value)
+        blame (string name " definition")]
     (with-syms [v]
       ~(def ,name
          (let [,v ,value]
-           (,cast-fn ,v ',T (string ',name " definition"))
+           (,cast-fn ,v ',T ,blame)
            (,tag-value-fn ,v ',T)
            ,v)))))
 
@@ -271,11 +272,12 @@ No type annotation, var.```
   [name T value]
   (let [cast-fn (deft-ref 'cast)
         tag-value-fn (deft-ref 'tag-value)
-        var-types-ref (deft-ref 'var-types)]
+        var-types-ref (deft-ref 'var-types)
+        blame (string name " definition")]
     (with-syms [v]
       ~(var ,name
          (let [,v ,value]
-           (,cast-fn ,v ',T (string ',name " definition"))
+           (,cast-fn ,v ',T ,blame)
            (,tag-value-fn ,v ',T)
            (put (,var-types-ref) ',name ',T)
            ,v)))))
@@ -286,12 +288,13 @@ No type annotation, var.```
   [name value]
   (let [cast-fn (deft-ref 'cast)
         tag-value-fn (deft-ref 'tag-value)
-        var-types-ref (deft-ref 'var-types)]
+        var-types-ref (deft-ref 'var-types)
+        blame (string name " sett")]
     (with-syms [v t]
       ~(let [,v ,value
              ,t (get (,var-types-ref) ',name)]
          (when ,t
-           (,cast-fn ,v ,t (string ',name " sett"))
+           (,cast-fn ,v ,t ,blame)
            (,tag-value-fn ,v ,t))
          (set ,name ,v)))))
 
@@ -356,7 +359,8 @@ Each field clause is either:
         make-sym (symbol (string "make-" prefix))
         args-sym (gensym)
         idx-sym (gensym)
-        k-sym (gensym)]
+        k-sym (gensym)
+        pp-sym (symbol (string prefix "-pp-handler"))]
 
     (with-syms [pv ov env]
       (def do-body @[])
@@ -388,6 +392,7 @@ Each field clause is either:
                    ,env))))
 
       (let [ppv (gensym)
+            pp-sym-arg (gensym)
             pushers (map (fn [kw]
                            (tuple 'string kw "="
                                   (tuple pp-str-fn (tuple 'get ppv kw))))
@@ -396,7 +401,7 @@ Each field clause is either:
                                (tuple 'string prefix "("
                                       (tuple 'string/join (apply tuple 'array pushers) ", ") ")"))
             pp-handler (if print-fn
-                         (tuple 'fn (tuple (gensym)) (tuple print-fn (gensym)))
+                         (tuple 'fn (tuple pp-sym-arg) (tuple print-fn pp-sym-arg))
                          default-pp)
             req-kvs (interleave req-kws
                                 (map (fn [i] (tuple 'get args-sym i))
@@ -425,13 +430,15 @@ Each field clause is either:
                          (tuple 'var idx-sym (length req-kws))]
             _ (each b opt-bodies (array/push body-parts b))
             _ (array/push body-parts kw-loop)
-            _ (array/push body-parts (tuple 'put ov :pp pp-handler))
+            _ (array/push body-parts (tuple 'put ov :pp pp-sym))
             _ (array/push body-parts (tuple cast-fn ov
                                             (tuple 'quote name)
                                             (string "make-" prefix)))
             _ (array/push body-parts ov)
             constructor (tuple 'fn (tuple '& args-sym)
                                 (apply tuple 'do body-parts))]
+        (array/push do-body
+          (tuple 'def pp-sym pp-handler))
         (array/push do-body constructor)
         (tuple 'def make-sym (apply tuple 'do do-body))))))
 
