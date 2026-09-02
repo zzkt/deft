@@ -2,13 +2,13 @@
 #+bibliography: doc/references.bib
 #+title: deft: gradual typing for Janet
 
+* Overview
+
 #+begin_quote
 The art of progress is to preserve order amid change, and to preserve change amid order.
 
 —Alfred North Whitehead, Process and Reality
 #+end_quote
-
-* Overview
 
 deft provides a way of adding optional type checks to Janet code at runtime, compile time, or ahead-of-time. The type system uses gradual typing as described by Siek & Taha, and the blame calculus of Wadler & Findler. It enables interoperability between typed and untyped (dynamically typed) forms. Type inference (bidirectional) and checking (static) can be enabled or disabled programatically. It has been designed to support a flexible, exploratory approach to working with types in Janet code.
 
@@ -26,7 +26,7 @@ Various features, in no particular order
 - Incompleteness and lack of conceptual rigour
 
 Various features that may be possible, but not yet implemented
-- Types as terms (?) dependent types with Π and Σ
+- Types as terms (?) dependent types with Π and Σ types.
 - Type classes, kinds, traits (?)
 - Multiple (?) dispatch based on type signature (?)
 - Matching on supertypes of compound types
@@ -39,7 +39,7 @@ deft can be installed with =jpm=
 jpm install https://codeberg.org/zzkt/deft
 #+END_SRC
 
-...or added to ~project.janet~
+...or added to =project.janet=
 #+begin_src janet
 :dependencies ["https://codeberg.com/zzkt/deft"]
 #+end_src
@@ -51,9 +51,9 @@ cd deft
 jpm install
 #+end_src
 
-Then import the module (with an optional prefix (or ""))
+Then import the module (with optional prefix (or ""))
 #+begin_src janet
-(import deft :as deft)
+(import deft :prefix "deft")
 #+end_src
 
 There are some deft forms that share names with declarations in the Janet API (notably =type=, =->=, and =pp=). By importing deft without a prefix, deft forms should take precedence. Note that most examples don't include a prefix.
@@ -65,16 +65,14 @@ There are some deft forms that share names with declarations in the Janet API (n
 * Defining and using types
 
 #+begin_quote
-I knew that signs also allow others to judge the one who makes them, and that
-in the course of a galactic year tastes and ideas have time to change, and the
-way of regarding the earlier ones depends on what comes afterwards.
+I knew that signs also allow others to judge the one who makes them, and that in the course of a galactic year tastes and ideas have time to change, and the way of regarding the earlier ones depends on what comesafterwards.
 
 —Italo Calvino, Cosmicomics.
 #+end_quote
 
-Type annotations can be used by adding a keyword immediately after a name wherever it's declared in a deft form, e.g. =(define five :number 5)=. Any of the built-in Janet types can be used, and new types can be created with =deftype=.
+Type annotations can be used by adding a keyword immediately after a name wherever it's declared. e.g. =(define five :number 5)= any of the built-in Janet types can be used, and new types can be created with =deftype=.
 
-*** ~define~
+*** =define=
 
 #+begin_quote
 that finds the nameform that whets the wits
@@ -82,7 +80,7 @@ that finds the nameform that whets the wits
 —James Joyce, Finnegans Wake.
 #+end_quote
 
-Universal definition dispatcher, =define= is used to define functions and variables that can be gradually typed. It uses the shape of the definition arguments to exapnd to the appropriate underlying form, and is the recommended way to introduce new bindings in annotated code.
+Universal definition dispatcher, =define= is used to define functions and variables that can be gradually typed. It uses the shape of the definition arguments to dispatch to the appropriate underlying form, and is the recommended way to introduce new bindings in annotated code.
 
 A *typed function* expects (optional) type declarations after each arg, and (optional) return type.
 #+BEGIN_SRC emacs-lisp
@@ -91,7 +89,7 @@ A *typed function* expects (optional) type declarations after each arg, and (opt
         (+ x y))
 #+END_SRC
 
-A docstring can be incdlued before the argument vector of function definitions (same as docstrings in =defn=)
+A docstring can be included before the argument vector of function definitions (same as docstrings in =defn=)
 #+begin_src janet
 (define factorial
   "Compute n! recursively."
@@ -114,6 +112,12 @@ An *untyped function* without type declarations uses inference to determine arg 
   (string "Hello, " name "!"))
 #+END_SRC
 
+typed and untyped params can be mixed
+#+begin_src janet
+(define flex [a :number b c :string] :string
+  (string (+ a b) " " c))
+#+end_src
+
 A *typed value* guards an expression with a cast, using =deftval=. The value of any mutable type can be changed using =set= in the same way as an untyped value, or in a type aware way by using =sett=
 #+BEGIN_SRC janet
 (define phi :number 1.618033988)
@@ -129,24 +133,28 @@ Immutable typed constants can be declared using the =:immutable= type. Note that
 (define phi (:and :number :immutable) 1.618033988)
 #+END_SRC
 
-If any parameter in the arg vector carries a type annotation, all parameters are parsed through ~parse-flex-args~, those without annotations are typed as ~:dynamic~ (then inferred). The return type is optional and also defaults to ~:dynamic~ when omitted. When no parameters carry annotations, inference attempts to resolve types from the function body and generate casts accordingly.
+If any parameter in the arg vector carries a type annotation, all parameters are parsed through =parse-flex-args=, those without annotations are typed as =:dynamic= (or inferred). The return type is optional and also defaults to =:dynamic= when omitted. When no parameters carry annotations, inference attempts to resolve types from the function body and generate casts accordingly.
 
 Typed function bodies are wrapped in arg casts (checking each argument) and a return cast (checking the result). On failure, blame is assigned to the caller (bad argument) or the function (bad return).
 
-The =define= macro replaces the need to choose between ~defn~, ~deftfn~, ~deftn~, ~def~, and ~deftval~ and provides a smooth (gradual) way of moving from untyped to typed code and back.
+<<<<<<< HEAD
+The =define= macro replaces the need to choose between =defn=, =deftfn=, =deftn=, =def=, and =deftval= and provides a smooth (gradual) way of moving from untyped to typed code and back.
+=======
+The =define= macro replaces the need to choose between ~defn~, ~deftfn~, ~var, ~def~, and ~deftval~ and provides a smooth (gradual) way of moving from untyped to typed code and back.
+>>>>>>> t0
 
 |-----------------------------------------+----------------------------------------------|
 | Shape                                   | Behaviour                                    |
 |-----------------------------------------+----------------------------------------------|
-| ~(define name [args+types] :ret body...)~ | Typed function (any or all params annotated) |
-| ~(define name [args] body...)~            | Untyped function with inference via ~deftn~    |
-| ~(define name :type value)~               | Typed value via ~deftval~ (cast at definition) |
-| ~(define name value)~                     | Untyped value via =var=                        |
+| =(define name [args+types] :ret body...)= | Typed function (all params annotated)        |
+| =(define name [args] body...)=            | Untyped function with inference via =deftn=    |
+| =(define name :type value)=               | Typed value via =deftval= (cast at definition) |
+| =(define name value)=                     | Untyped value via =var=                        |
 |-----------------------------------------+----------------------------------------------|
 
-Further: Boundary cast semantics [cite:@siek-taha-2006]; Blame assignment [cite:@wadler-findler-2009]
+Further: Boundary cast semantics [cite:@siek-taha-2006]; Blame assignment [cite:@wadler-findler-2009].
 
-*** ~deftype~
+*** =deftype=
 
 Define a new type from a predicate. Predicate based type definition rely on the boolean output of a predicate function to determine if a value is of the given type or not. Predicates can be any form that returns a boolean. =deftype= shold be used for any user defined types.
 
@@ -155,7 +163,7 @@ An exsting predicate can be used to define a type. e.g the even numbers
 (deftype :even even?)
 #+end_src
 
-Any function can be used as a predicate if it returns true or false. Type predicates should ideally be as simple as possible, side-effect free, and guarateed to return.
+Any function can be used if it returns true or false. Type predicates should ideally be as simple as possible.
 #+begin_src janet
 (deftype :positive (fn [v] (and (number? v) (> v 0))))
 (deftype :negative (fn [v] (and (number? v) (< v 0))))
@@ -176,18 +184,14 @@ A type can be defined as a logical combination of other types. This technique ca
 (isa?  0 :nonzero) # returns false
 #+END_SRC
 
-There are also compound type operators that can be used to declare the element types of containers (i.e. =:array=, =:tuple=, =:table=, and =:string= types) at runtime. Note: the container types are currently hardcoded to include Janet's containers and can't (yet) be extended to user defined containers, however the elements can be of any type.
-
-#+BEGIN_SRC janet
-(deftfn sum-all [xs (:array :number)] :number (reduce + 0 xs))
-#+END_SRC
+There are also compound type operators that can be used to declare the element types of containers (i.e. =:array=, =:tuple=, =:table=, and =:string= types) at runtime. Note: the container types are currently hardcoded to include Janet's containers and can't (yet) be extended to user defined containers, however the elements can be of any type that has been defined.
 
 #+BEGIN_SRC janet
 (deftype :numeric-array (:array :number))
 #+END_SRC
 
 #+BEGIN_SRC janet
-(deftfn sum-all [xs :numeric-array] :number (reduce + 0 xs))
+(deftfn sum-all [xs (:array :number)] :number (reduce + 0 xs))
 #+END_SRC
 
 Types defined with =deftype= can be used anywhere a type annotation is expected.
@@ -201,14 +205,20 @@ Types defined with =deftype= can be used anywhere a type annotation is expected.
 
 Using functions to define type predicates enables a limited form of (not quite) dependent typing. A type can be refined with it's own value, but the declaration can't access values of other type declarations. An argument value can't be used in the type predicate of a return value (However, a function contract could provide a suitable way to dynamically manipulate return values if you insist...)
 
-This makes it possible for example, to define the type "an array of 7 prime numbers" but not easily declare a return type that is "an array of numbers twice as long as the first argument to the calling function".
+This makes it possible for example, to define the type "an array of 7 prime numbers" but not easily declare a return type that is "an array of numbers twice as long as the argument to the calling function".
 
 Further: [cite:@siek-taha-2006] on the consistency relation extended to custom predicates.
 
 ** Typed functions
-*** ~deftfn~
+*** =deftfn=
 
-Define a typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. ~deftfn~ inserts runtime arg and return checks but does *not* register a ~:fn~ type scheme (so ~fn-type-of~ will not work for functions defined with ~deftfn~, use ~deftn~ or ~define~ if you need to query a function's type at runtime).
+<<<<<<< HEAD
+Define a gradually typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. =deftfn= inserts runtime arg and return checks but does *not* register an =:fn= type scheme, so =fn-type-of= will not work for functions defined with =deftfn= (use =deftn= or =define= if you need to query a function's type at runtime).
+
+A trailing =&= ignores extra arguments (see Janet's "Ignoring extra arguments"), and a trailing =& rest-name= collects the rest into an untyped tuple.
+=======
+Define a typed function. Every parameter *must* be followed by a type spec, the return type comes after the parameter vector. ~deftfn~ inserts runtime arg and return checks but does *not* register a ~:fn~ type scheme (so ~fn-type-of~ will not work for functions defined with ~deftfn~, use ~define~ if you need to query a function's type at runtime).
+>>>>>>> t0
 
 #+begin_src janet
 (deftfn add [x :number y :number] :number
@@ -216,15 +226,26 @@ Define a typed function. Every parameter must be followed by a type spec, the re
 
 (deftfn greet [name :string] :string
   (string "Hello, " name "!"))
+
+# Ignoring extra arguments
+(deftfn ignore-extra [x :number &] :number
+  (+ x 1))
+(ignore-extra 1 2 3 4 5)  # => 2
+
+# Variadic — the rest tuple is untyped
+(deftfn total [x :number & xs] :number
+  (+ x (length xs)))
+(total 1 2 3 4)  # => 4
 #+end_src
 
-*** ~deftfn-~
+*** =deftfn-=
 
-Like ~deftfn~ but defines a private function (c.f ~defn-~)
+Like =deftfn= but defines a private function (c.f =defn-=)
 
-*** ~deftn~
+<<<<<<< HEAD
+*** =deftn=
 
-Define a function with optional type annotations. Parameters without an explicit type are inferred from usage in the function body (when inference is enabled) or default to ~:dynamic~. The return type is optional and defaults to ~:dynamic~ when omitted. =deftn= registers a ~:fn~ type scheme, so ~fn-type-of~ can be used to query the function's type at runtime.
+Define a function with optional type annotations. Parameters without an explicit type are inferred from usage in the function body (when inference is enabled) or default to =:dynamic=. The return type is optional and defaults to =:dynamic= when omitted.
 
 typed and untyped params can be mixed
 #+begin_src janet
@@ -232,20 +253,86 @@ typed and untyped params can be mixed
   (string (+ a b) " " c))
 #+end_src
 
-...and without annotations behaves the same as unaugmented =defn=
+...and without annotations =deftn= behaves the same as a plain =defn=
+=======
+*** optional, keyword and ignored arguments
+
+Following the semantics of of Janet's =fn=, arguments to =define= can include keywords and optional arguments.
+
+Optional arguments are declared after ~&opt~ and default to ~nil~
+>>>>>>> t0
 #+BEGIN_SRC janet
-(deftn plain [x y]
-  (+ x y))
+(define options [a b c &opt d e f] :number
+  (default d 10)
+  (default e 11)
+  (default f 12)
+  (+ a b c d e f))
+
+(options 1 2 3)         # => 39
+(options 1 2 3 4 5 6)   # => 21
 #+END_SRC
 
-Return type is optional
+Variadic functions can be defined by including the =&= symbol for rest args. The rest tuple is untyped (i.e. =:dynamic=) by default.
 #+BEGIN_SRC janet
-(deftn greet [name :string]
-  (string "Hello, " name "!"))
+(define long [x :number & xs] :number
+  (+ x (length xs)))
+
+(long 1 2 3 4)  # => 4
+#+END_SRC
+
+It is also possible to ignore extra arguments using an unnamed =&= at the end of the argument list.
+#+BEGIN_SRC janet
+(deftfn ignore-extra [x :number &] :number
+  (+ x 11))
+
+(ignore-extra 1 2 3 4 5)  # => 12
+#+END_SRC
+
+Optional arguments with =&opt= default to =nil= and work as expected with the =default= macro
+#+BEGIN_SRC janet
+(deftn opt [a b c &opt d e f]
+  (default d 10)
+  (default e 11)
+  (default f 12)
+  (+ a b c d e f))
+(opt 1 2 3)         # => 39
+(opt 1 2 3 4 5 6)   # => 21
+#+END_SRC
+
+Variadic functions gather 'rest' into a tuple, adding a type after the rest name types each element
+#+BEGIN_SRC janet
+(deftn sum [& xs :number]
+  (var total 0)
+  (each n xs (+= total n))
+  total)
+(sum 1 2 3)  # => 6
+
+(deftn mix [x :number &opt y :number & tail :number]
+  (default y 0)
+  (+ x y (length tail)))
+#+END_SRC
+
+Ignoring extra arguments (with a bare =&=)
+#+BEGIN_SRC janet
+(deftn ignore-extra [x :number &]
+  (+ x 1))
+(ignore-extra 1 2 3 4 5)  # => 2
+#+END_SRC
+
+Keyword arguments with =&keys= bind named keyword parameters to local symbols
+#+BEGIN_SRC janet
+(deftn greet [name :string &keys {:greeting :string}]
+  (string greeting ", " name "!"))
+(greet "World" :greeting "Hello")  # => "Hello, World!"
+
+(deftn draw [x :number &opt y :number &keys {:color :string}]
+  (default y 0)
+  (string color ": " (+ x y)))
+(draw 1 2 :color "red")  # => "red: 3"
 #+END_SRC
 
 ** Typed values
-*** ~deftval~
+*** =deftval=
 
 Define an immutable typed value.
 #+begin_src janet
@@ -259,27 +346,26 @@ Can be used with user defined types.
 (deftval three :positive 3)
 #+END_SRC
 
-*** ~deftv~
+*** =deftv=
 
-Define a mutable typed value (using ~var~ rather than ~def~).
+Define a mutable typed value (using =var= rather than =def=).
 #+begin_src janet
 (deftv counter :number 0)
 (++ counter)
 #+end_src
 
 ** Typed local bindings
-*** ~lett~
+*** =lett=
 
-Sequentially typed local bindings with type annotations. ~lett~ is like ~let*~ with optional type checks on each binding, and in every other respect should behave as closely as possible to Janet's =let=. Bindings can be expressed as an array of one or more doubles =(name value)= or
-triples ~(name type value)~ or use a flat array =[name type value ...]= (all bindings must include a type). Values are cast to the declared type at bind time. In contrast to Janet's =let= bindings, names bound with =lett= are mutable (similar to scheme or CL)
+Sequentially typed local bindings with type annotations. =lett= is like =let*= with optional type checks on each binding, and in every other respect should behave as closely as possible to Janet's =let=. Bindings can be expressed as one or more doubles =(name value)= or triples =(name type value)= or use a flat =name type value ...= (all bindings must include a type). Values are cast to the declared type at bind time. In contrast to Janet's =let= bindings, names bound with =lett= are mutable (similar to scheme or CL)
 
 #+BEGIN_SRC janet
-(lett [x :number 1318131
-       y :string "Shikamoo"]
+(lett [x :number 10
+       y :string "hello"]
   (print x y))
 #+END_SRC
 
-Sequential binding allows later bindings see previous ones (c.f. =let*=)
+Sequential binding allows later bindings use previous ones (c.f. =let*=)
 #+begin_src janet
 (lett [x :number 5
        y :number (* x 2)]
@@ -295,15 +381,15 @@ Bindings can be nested within a lexical scope
 
 Bindings can use a more 'traditional' =let= syntax, with or without annotations.
 #+BEGIN_SRC janet
-(lett [(x :number 101)
-       (y "nisam upoznat")]
+(lett [(x :number 10)
+       (y "hello")]
   (print x y))
 #+END_SRC
 
 ** Composed and structured types
 *** anonymous compound types
 
-Compound type expressions can be used in parameter or return positions without a separate ~deftype~ using ~(:or ...)~, ~(:and ...)~, ~(:not ...)~ forms.
+Compound type expressions can be used in parameter or return positions without a separate =deftype= using =(:or ...)=, =(:and ...)=, =(:not ...)= forms.
 
 #+begin_src janet
 (deftype :positive (define [v :number] (> v 0)))
@@ -317,26 +403,37 @@ Compound type expressions can be used in parameter or return positions without a
 (pos-or-neg 0)    # type error
 #+end_src
 
-*** ~deftrecord~
+*** =deftrecord=
 
-Define a named structural record type with typed field declarations. A definition will also generate a constructor, accessors, mutators (if mutable), and an optional ~:pp~ pretty-print handler.
+<<<<<<< HEAD
+Define a named structural record type with typed field declarations. A definition will also generate a constructor, accessors, mutators (if mutable), and an optional =:pp= pretty-print handler.
+=======
+Define a named structural record type with typed field declarations using =deftrecord=. A definition will generate a constructor, accessors, mutators (if mutable), and an optional ~:pp~ pretty-print handler.
+>>>>>>> t0
 
 *Generated functions*
 |--------------------+--------------------------|
 | Symbol             | Purpose                  |
 |--------------------+--------------------------|
-| ~make-{name}~        | Constructor (validates)  |
-| ~{name}-{field}~     | Accessor                 |
-| ~set-{name}-{field}~ | Mutator (validates)      |
+| =make-{name}=        | Constructor (validates)  |
+| ={name}-{field}=     | Accessor                 |
+| =set-{name}-{field}= | Mutator (validates)      |
 |--------------------+--------------------------|
 
 A record declaration consists of a keyword (the type) and field clauses. Required fields are declared first, then optional, then keyword pairs.
 
 *Field clauses*
-- ~(field name type)~ required positional argument
-- ~(optional name type)~ optional positional argument (defaults to ~nil~), can also be set via ~:keyword value~
-- ~(guard pred-fn)~ optional guard predicate (for any extra validation)
-- ~(print handler-fn)~ optional custom pretty-print handler (for string based output)
+<<<<<<< HEAD
+- =(field name type)= — required positional argument
+- =(optional name type)= — optional positional argument (defaults to =nil=), can also be set via =:keyword value=
+- =(guard pred-fn)= — optional guard predicate (for any extra validation)
+- =(print handler-fn)= — optional custom pretty-print handler (for string based output)
+=======
+- ~(field name type)~ — required positional argument
+- ~(optional name type)~ — optional positional argument (defaults to ~nil~), can also be set via ~:keyword value~
+- ~(guard pred-fn)~ — optional guard predicate (for any extra validation)
+- ~(print handler-fn)~ — optional custom pretty-print handler (for string based output)
+>>>>>>> t0
 
 #+BEGIN_SRC janet
 (deftrecord :person
@@ -346,12 +443,17 @@ A record declaration consists of a keyword (the type) and field clauses. Require
    (optional nickname :string))
 #+END_SRC
 
-Using the constructor to create new records
+A generated constructor can be used to create new records
 #+BEGIN_SRC janet
-(def p1 (make-person "Alice" 48)) # only required fields
+<<<<<<< HEAD
+(def p1 (make-person "Alice" 30)) # only required fields
+(def p2 (make-person "Robert');" 13 "Mr." "Little Bobby Tables")) # optional positional
+=======
+(def p1 (make-person "Alice" 48)) # with only required fields
 (def p2 (make-person "Robert');" 19 "Mr." "Little Bobby Tables")) # optional positional
+>>>>>>> t0
 (def p3 (make-person "Frederick" 35 :nickname "Fred")) # keyword
-(def p4 (make-person "Diindiisi" 73 "Dr." :nickname "Jay")) # mix
+(def p4 (make-person "Diindiisi" 73 "Dr." :nickname "Jay")) # mixed
 #+END_SRC
 
 An accessor can be used to return the value of a field.
@@ -361,25 +463,37 @@ An accessor can be used to return the value of a field.
 
 If a field is mutable, a mutator can be used to set the value of the field.
 #+BEGIN_SRC janet
-(set-person-age p1 49) # returns {:name "Alice" :age 49 :title nil :nickname nil}
+(set-person-age p1 31) # returns {:name "Alice" :age 31 :title nil :nickname nil}
 #+END_SRC
 
-A definition can include a guard predicate which has access to the declared fields and shares the lexical scope of the =deftrecord=. A guard predicate follows the same semantics as a type predicate. A guard can extend the validation of a single field (c.f. type narrowing) and also validate relations between fields. e.g. a guard can be used to check that an =end= field of type =:datetime= occurs later than the =start= field.
+A definition can include guard predicates which have access to declared fields. A guard predicate follows the same semantics as a type predicate. A guard can extend the validation of a single field (c.f. type narrowing) and also validate relations between fields. e.g. a guard can be used to check that an =end= field of type =:datetime= occurs later than the =start= field.
 
 #+begin_src janet
-  (deftrecord :pos-pair
-    (field a :number)
-    (field b :number)
-    (guard (fn [v] (> (* (get v :a) (get v :b)) 0))))
+(deftrecord :timeframe
+  (field start :datetime)
+  (field end :datetime)
+  (guard (fn [v] (> (get v :end) (get v :start)))))
 #+end_src
 
+<<<<<<< HEAD
+*** =defenum=
+=======
+#+BEGIN_SRC janet
+(make-timeframe  "2026-01-01T22:23:46" "2025-W17")
+
+# => error: Type error (make-timeframe): guard predicate failed. fields may be incorrect.
+#+END_SRC
+
 *** ~defenum~
+>>>>>>> t0
 
 #+begin_quote
 Three quarks for Muster Mark!
+
+—James Joyce, Finnegans Wake.
 #+end_quote
 
-Define an enumeration type from a string to value map. Values can be of any =:type=. The macro registers a type predicate and generates an accessor for looking up values by key. The macro also creates the functions '<name>-extend' and '<name>-remove' which can be used to modify the enum.
+Define an enumeration type using a string to value map. Values can be of any =:type=. =defenum= registers a type predicate and generates an accessor for looking up values by key. The functions '<name>-extend' and '<name>-remove' are also generated and can be used to modify the enum.
 
 #+begin_src janet
 (defenum :colour {"red" 1 "green" 2 "blue" 3})
@@ -389,36 +503,44 @@ Define an enumeration type from a string to value map. Values can be of any =:ty
 |---------------+-----------------------------------|
 | Symbol        | Purpose                           |
 |---------------+-----------------------------------|
-| ~{name}~        | Lookup value by key               |
-| ~{name}-extend~ | Add or update a key-value pair    |
-| ~{name}-remove~ | Remove a key and return its value |
+| ={name}=        | Lookup value by key               |
+| ={name}-extend= | Add or update a key-value pair    |
+| ={name}-remove= | Remove a key and return its value |
 |---------------+-----------------------------------|
 
-The accessor function looks up a value in the enumeration table by key and returns the associated value or ~nil~.
+The accessor function looks up a value in the enumeration table by key and returns the associated value or =nil=.
 
 #+BEGIN_SRC janet
 (colour "red")    # => 1
 (colour "pink")   # => nil
 #+END_SRC
 
-The ~-extend~ function adds or updates a key-value pair in the enum table. The key must be a =:string= and the value must match the declared =:type=
+<<<<<<< HEAD
+The =-extend= function adds or updates a key-value pair in the enum table. The key must be a =:string= and the value must match the declared =:type=
+=======
+The ={name}-extend= function adds or updates a key-value pair in the enumeration. The key must be a =:string= and the value must match the declared =:type=
+>>>>>>> t0
 
 #+BEGIN_SRC janet
 (colour-extend "orange" 4)   # adds "orange" to 4 mapping
 (colour "orange")            # returns 4
 #+END_SRC
 
-The ~-remove~ function removes a key from the enum table and returns its previous value (or ~nil~ if not found).
+<<<<<<< HEAD
+The =-remove= function removes a key from the enum table and returns its previous value (or =nil= if not found).
+=======
+The ={name}-remove= function removes a key from the enumeration and returns its previous value (or ~nil~ if not found).
+>>>>>>> t0
 
 #+BEGIN_SRC janet
 (colour-remove "green")      # removes "green", returns 2
 (colour "green")             # returns nil
 #+END_SRC
 
-Mutation of the enum table is reflected immediately in the accessor function and the type predicate.
+Mutation of the enumeration is reflected immediately in the accessor function and the type predicate.
 
 #+BEGIN_SRC janet
-(deftfn colour-code [c :colour] :number
+(define colour-code [c :colour] :number
   (in (enum-table :colour) c))
 
 (colour-code "red")          # returns 1
@@ -429,24 +551,26 @@ Mutation of the enum table is reflected immediately in the accessor function and
 #+END_SRC
 
 ** Type properties, checking and inference
-:PROPERTIES:
-:ID: type-properties-and-inference
-:END:
+<<<<<<< HEAD
+*** =type= (extended)
 
+Returns the type of a value. For values tagged with a user defined type it returns that tag, otherwise falls through to Janet's built-in =type=.
+=======
 *** ~type~ (extended)
 
 Returns the type of a value. For values tagged with a user defined type it returns that tag, otherwise falls through to Janet's built-in ~type~.
+>>>>>>> t0
 
 #+begin_src janet
 (deftval three :positive 3)
 (type three)       # returns :positive (user-defined tag)
-(core-type three)  # returns :number (underlying Janet type)
-(type 42)          # returns :number (no tag, core fallback)
+(core-type three)  # returns :number   (underlying Janet type)
+(type 42)          # returns :number   (no tag, core fallback)
 #+end_src
 
-*** ~:type~
+*** =:type=
 
-The type ~:type~ is the type of types. A type whose values are themselves types. Functions can take and return values of type ~:type~ (metaprogramming with types if you are into that sort of thing)
+The type =:type= is the type of types. A type whose values are themselves types. Functions can take and return values of type =:type= (metaprogramming with types if you are into that sort of thing)
 
 Further: [cite:@brady-2017].
 
@@ -455,46 +579,55 @@ Further: [cite:@brady-2017].
 (isa? number? :type)    # true
 (isa? 42 :type)         # false
 
-(deftfn identity-type [t :type] :type t)
+(define identity-type [t :type] :type t)
+
 (identity-type :number)  # returns :number
 (identity-type number?)  # returns number?
 #+end_src
 
-*** ~isa?~
+*** =isa?=
 
 Runtime type check. Tests a value directly against a type predicate, bypassing any declared type. A value can match a type without that type being explicitly declared.
 
 #+begin_src janet
-(isa? 42 :number)     # true
-(isa? "zero" :number) # false
-(isa? 5 :positive)    # true
-(isa? 0 :positive)    # false
-(isa? 5 :nonzero)     # true
+(isa? 42 :number)    # true
+(isa? "hi" :number)  # false
+(isa? 5 :positive)   # true
+(isa? 0 :positive)   # false
+(isa? 5 :nonzero)    # true
 #+end_src
 
-*** ~type=~
+*** =type==
 
-Check if a value's type matches a given type. Uses an extended ~type~ that accounts for user-declared types.
+<<<<<<< HEAD
+Check if a value's type matches a given type. Uses the extended =type= that accounts for user-declared types.
+=======
+Check if a value's type matches a given type. Uses the extended ~type~ to include user-declared types.
+>>>>>>> t0
 
 #+begin_src janet
 (deftval three :positive 3)
-(type= three :positive)     # true
-(type= three :number)       # false  (tagged :positive)
-(type= 42 :number)          # true   (no tag, core fallback)
+(type= three :positive)  # true
+(type= three :number)    # false  (tagged :positive)
+(type= 42 :number)       # true   (no tag, core fallback)
 #+end_src
 
-*** ~type-name~
+*** =type-name=
 
-Return the keyword name for a type value, or ~nil~ for anonymous predicates.
+Return the keyword name for a type value, or =nil= for anonymous predicates.
 
 #+begin_src janet
 (type-name :number)    # returns :number
 (type-name number?)    # returns nil
 #+end_src
 
-*** ~consistent?~
+*** =consistent?=
 
-The consistency relation from Siek & Taha 2006. ~:dynamic~ is consistent with every type, otherwise requires equality. Used internally as the core relation for gradual type checking.
+<<<<<<< HEAD
+The consistency relation from Siek & Taha 2006. =:dynamic= is consistent with every type, otherwise requires equality. Used internally as the core relation in gradual type checking.
+=======
+The consistency relation from Siek & Taha 2006. The type ~:dynamic~ is consistent with every type, otherwise it requires equality. Used internally as the core relation for gradual type checking.
+>>>>>>> t0
 
 #+begin_src janet
 (consistent? :number :number)  # true
@@ -503,7 +636,7 @@ The consistency relation from Siek & Taha 2006. ~:dynamic~ is consistent with ev
 (consistent? :dynamic :string) # true
 #+end_src
 
-*** ~registered-types~
+*** =registered-types=
 
 Return the table used for mapping type names to predicates.
 
@@ -511,7 +644,7 @@ Return the table used for mapping type names to predicates.
 (registered-types)  # e.g. @{:positive <fn> :nonzero <fn>}
 #+end_src
 
-*** ~enable-checking~
+*** =enable-checking=
 
 Enable or disable runtime type checking.
 
@@ -519,25 +652,37 @@ Enable or disable runtime type checking.
 (enable-checking false)  # disable all checks
 (enable-checking true)   # enable the checks
 #+end_src
+*** =enable-inference=
 
-*** ~enable-inference~
-
-Enable or disable bidirectional type inference for unannotated parameters (default: ~true~).
+Enable or disable bidirectional type inference for unannotated parameters (default: =true=).
 
 #+begin_src janet
 (enable-inference false)  # disable type inference
 (enable-inference true)   # enable type inference
 #+end_src
 
-When enabled, ~deftn~ and ~define~ run inference on unannotated parameters using a dual-mode  bidirectional system. Known types propagate downward from operator type schemes and declared parameter types (checking mode), while any unknown types are synthesized upward from observing usage patterns (inference mode).
+When enabled, =deftn= and =define= run inference on unannotated parameters using a dual-mode bidirectional system, known types propagate downward from operator type schemes and declared parameter types (checking mode), while unknown types are synthesized upward from usage patterns (inference mode).
 
-Type variables are resolved through unification with gradual semantics (i.e. =:dynamic= unifies with anything, and unresolved variables are typed as ~:dynamic~.) The resulting inferred types are used to add runtime casts at the function boundaries, preserving blame semantics of explicit annotations.
+<<<<<<< HEAD
+Type variables are resolved through unification with gradual semantics (i.e. =:dynamic= unifies with anything) and unresolved variables default to =:dynamic=. The resulting inferred types are used to add runtime casts at the function boundaries, preserving blame semantics of explicit annotations.
+=======
+Type variables are resolved through unification with gradual semantics (i.e. =:dynamic= unifies with anything, and unresolved variables are initially typed as ~:dynamic~.) The resulting inferred types are used to add runtime casts at the function boundaries, preserving blame semantics of explicit annotations.
+>>>>>>> t0
 
-When disabled, all unannotated parameters default to ~:dynamic~ so no inference or type-variable resolution occurs.
+When disabled, all unannotated parameters default to =:dynamic= so no inference or type-variable resolution occurs.
 
-*** ~type?~
+#+begin_src janet
+(enable-inference false)  # disable: untyped params become :dynamic
+(enable-inference true)   # re-enable
+#+end_src
 
-Check if a value is a registered or built-in type. Returns ~true~ for e.g. ~:number~, ~:string~, ~:fn~ contracts, and user-defined types (via ~deftype~, ~defenum~, ~deftrecord~). Returns ~false~ for non-type values.
+<<<<<<< HEAD
+*** =type?=
+
+Check if a value is a registered or built-in type keyword. Returns =true= for =:number=, =:string=, =:fn= contracts, and user-defined types (via =deftype=, =defenum=, =deftrecord=). Returns =false= for non-type values.
+=======
+Check if a value is a registered or built-in type. Returns ~true~ for e.g. ~:number~, ~:string~, function contracts, and user-defined types (via ~deftype~, ~defenum~, ~deftrecord~). Returns ~false~ for non-type values.
+>>>>>>> t0
 
 #+begin_src janet
 (type? :number)      # => true
@@ -547,9 +692,9 @@ Check if a value is a registered or built-in type. Returns ~true~ for e.g. ~:num
 (type? nil)          # => false
 #+end_src
 
-*** ~fn-type-of~
+*** =fn-type-of=
 
-Retrieve the registered type scheme for a function at runtime. Returns a function contract, or ~nil~ for functions declared with ~defn~.
+Retrieve the registered type scheme (function contract) for a function at runtime. Returns a function contract, or =nil= for plain =defn= functions.
 
 #+begin_src janet
 (deftn add [x y] (+ x y))
@@ -559,39 +704,82 @@ Retrieve the registered type scheme for a function at runtime. Returns a functio
 #+END_SRC
 
 #+BEGIN_SRC janet
-(deftn strung [a :string x]
+(deftn greet [a :string x]
   (string a x))
 
-(fn-type-of 'strung)
+(fn-type-of 'greet)
 # => (:fn @[:string :dynamic] :string)
 #+end_src
 
-*** ~deftcheck~ (static checking)
+The =&opt=, =&keys= and rest-argument slots are folded into the function scheme as trailing argument types. An untyped rest slot is =:dynamic= and a typed rest slot records its element type.
+#+BEGIN_SRC janet
+# optional arguments
+(deftn opt [x :number &opt y :number]
+  (default y 0)
+  (+ x y))
+(fn-type-of 'opt)
+# => (:fn @[:number :number] :dynamic)
 
-Macro that wraps one or more deft forms and runs type consistency verification at compile time. Errors print to stderr before the wrapped forms are expanded. Reports mismatches between declared and inferred types, inconsistent argument usage, and flow-sensitive narrowing errors.
+# ignoring extra arguments
+(deftn ignore-extra [x :number &] :number
+  (+ x 1))
+(fn-type-of 'ignore-extra)
+# => (:fn @[:number :dynamic] :number)
+
+# untyped variadic
+(deftn variadic [x :number & xs] :number
+  (+ x (length xs)))
+(fn-type-of 'variadic)
+# => (:fn @[:number :dynamic] :number)
+
+# typed variadic — the rest element type
+(deftn sum [& nums :number] :number
+  (length nums))
+(fn-type-of 'sum)
+# => (:fn @[:number] :number)
+
+# keyword arguments
+(deftn greet2 [name :string &keys {:greeting :string}] :string
+  (string greeting ", " name "!"))
+(fn-type-of 'greet2)
+# => (:fn @[:string :string] :string)
+
+# positional + optional + typed rest
+(deftn mix [x :number &opt y :number & tail :number] :number
+  (default y 0)
+  (+ x y (length tail)))
+(fn-type-of 'mix)
+# => (:fn @[:number :number :number] :number)
+#+end_src
+
+*** =deftcheck= (static checking)
+
+Macro that wraps one or more deft forms and runs type consistency verification at compile time. Errors print to stderr before the code expands. Reports mismatches between declared and inferred types, inconsistent argument usage, and flow-sensitive narrowing errors.
 
 #+begin_src janet
 (deftcheck
-  (define safe-division
+  (define safe-div
     [a :number b :nonzero] :number
      (/ a b)))
 #+end_src
 
 #+BEGIN_SRC janet
 (deftcheck
- (deftfn wrong
-   [s :string] :number
-    s))
+ (deftfn bad [s :string] :number s))
 
 # => deftcheck: 1 type error(s)
-#      wrong: type mismatch: expected number, cannot unify string and number
+#      bad: type mismatch: expected number, cannot unify string and number
 #+END_SRC
 
-See ~check-form~ for the equivalent runtime function and its error/return values.
+See =check-form= below for the equivalent runtime function and its error/return values.
 
-*** ~check-form~  (runtime checking)
+*** =check-form=  (runtime checking)
 
-Runtime function that checks a single deft form using bidirectional inference. Returns an array of error strings (empty means no errors). Useful for programmatic or REPL driven validation.
+<<<<<<< HEAD
+Runtime function that checks a single deft form using bidirectional inference. Returns an array of error strings (empty means no errors). Useful for programmatic or REPL-driven validation.
+=======
+Runtime function that checks a single deft form using bidirectional inference. Returns an array of error strings (the array is empty when there are no errors). Useful for programmatic or REPL driven validation.
+>>>>>>> t0
 
 #+begin_src janet
 (check-form '(deftn add [a b] (+ a b)))                  # => @[]
@@ -603,20 +791,20 @@ Runtime function that checks a single deft form using bidirectional inference. R
  # => @["bad: type mismatch: expected number, got: cannot unify string and number"]
 #+END_SRC
 
-*** ~infer-expression~ (ad-hoc inference)
+*** =infer-expression= (ad-hoc inference)
 
-Return the inferred type of any expression using bidirectional inference with gradual unification. An optional environment table maps symbols to their known types.
+Return the inferred type of any s-expression using bidirectional inference with gradual unification. An optional environment table maps symbols to their known types.
 
 #+begin_src janet
 (infer-expression '(+ 1 2))                           # => :number
 (infer-expression '(string 42 "!"))                   # => :string
-(infer-expression '(if true 1 "O"))                   # => :dynamic
+(infer-expression '(if true 1 "x"))                   # => :dynamic
 (infer-expression '(+ x y) @{:x :number :y :number})  # => :number
 #+end_src
 
-*** ~infer-expression-full~ (detailed inference)
+*** =infer-expression-full= (detailed inference)
 
-Like ~infer-expression~ but returns a table with ~:type~ containing the inferred type, and ~:substitution~ containing the unification substitution after resolution.
+Like =infer-expression= but returns a table with =:type= containing the inferred type, and =:substitution= containing the final unification substitution after resolution.
 
 #+begin_src janet
 (def info (infer-expression-full '(+ x 1) @{:x :number}))
@@ -625,19 +813,23 @@ Like ~infer-expression~ but returns a table with ~:type~ containing the inferred
 (info :substitution)  # => @{}
 #+end_src
 
-*** ~infer-assert-type~ (compile-time assertion)
+*** =infer-assert-type= (compile-time assertion)
 
-An assert inside a ~deftn~ body that ensures the inferred type of an expression matches an expected type. Errors at macroexpansion time if the assertion fails.
+<<<<<<< HEAD
+An assert inside a =deftn= body that ensures the inferred type of an expression matches an expected type. Errors at macro-expansion time if the assertion fails.
+=======
+An assert inside a =define= body that ensures the inferred type of an expression matches an expected type. Errors at macroexpansion time if the assertion fails.
+>>>>>>> t0
 
 #+begin_src janet
-(deftn safe-add [x y]
+(define safe-add [x y]
   (infer-assert-type :number (+ x y))
   (+ x y))
 
 # compiles (+ x y) is :number
 #+end_src
 
-*** ~with-inference-trace~ (per-form tracing)
+*** =with-inference-trace= (per-form tracing)
 
 Wrap an inference call and print every sub-form with its inferred type to stderr.
 
@@ -650,7 +842,7 @@ Wrap an inference call and print every sub-form with its inferred type to stderr
 # stderr: infer (+ 1 2) => :number
 #+end_src
 
-*** ~enable-inference-trace~
+*** =enable-inference-trace=
 
 Toggle persistent tracing to see how types are inferred. Every argument and body form is logged to stderr with inferred and resolved types.
 
@@ -680,7 +872,7 @@ Thus the unfacts, did we possess them, are too imprecisely few to warrant our ce
 —James Joyce, Finnegans Wake.
 #+end_quote
 
-deft implements a gradual typing approach to integrating static and dynamic typing within the same language. It has Features.
+deft implements a gradual typing approach to integrating static and dynamic typing within the same language.
 
 ** Blame
 
@@ -692,20 +884,20 @@ Without Contraries is no progression.
 
 When a cast fails, blame is assigned to either the caller or the function
 
-- *Caller blamed*. Argument type mismatch (i.e. caller passed a bad value)
-- *Function blamed*. Return type mismatch (i.e. function returned a bad value)
+- *Caller blamed* — argument type mismatch (i.e. caller passed a bad value)
+- *Function blamed* — return type mismatch (i.e. function returned a bad value)
 
-This enables you to locate the source of a type error without using a full static type checker.
+This lets you locate the source of a type error without using a full static type checker.
 
 Further: [cite:@wadler-findler-2009]; also the higher-order blame semantics in [cite:@siek-garcia-taha-2009].
 
 ** Consistency
 
-The consistency relation is a core feature of gradual typing. It relies on the relation between types, rather than strict equality or static subtyping. Where a type is unknown, values are assigned the =:dynamic= type. The type ~:dynamic~ is consistent with every type and allows typed and untyped code to coexist. Consistency is symmetric but not transitive.
+The consistency relation is a core technical feature of gradual typing. It relies on the relation between types, rather than strict equality or static subtyping. Where a type is unknown, values are assigned the =:dynamic= type. The type =:dynamic= is consistent with every type and allows typed and untyped code coexist. Consistency is symmetric but not transitive.
 
-- ~:number ~ :dynamic~ → true
-- ~:dynamic ~ :string~ → true
-- ~:number ~ :string~  → false
+- =:number ~ :dynamic= → true
+- =:dynamic ~ :string= → true
+- =:number ~ :string= → false
 
 Further: [cite:@siek-taha-2006] also; [cite:@garcia-2016] for the abstract specification of consistency.
 
@@ -717,11 +909,19 @@ I had developed a system of my own, to shut him up: 'Oh, no? And what does it me
 —Italo Calvino, Cosmicomics, "A Sign in Space"
 #+end_quote
 
-Higher-order function types ~(:fn [:a :b -> :return])~ wrap arguments in contracts, each call (re)checks args and return types. A contract can be used to type a function. A contract can also be used as a return type (i.e. function that returns a function) and used to infer the type of values it operates on.
+<<<<<<< HEAD
+Higher-order function types =(:fn [:a :b -> :return])= wrap arguments in contracts, each call rechecks args and return types. A contract can be used to type a function. A contract can also be used as a return type (i.e. function returning function) and infer the type of values it operates on.
 
 While it may be possible to define /value-dependent predicates/ (e.g. to implement Π and Σ types) it's currently fragile and error prone.
 
-Note: arrow notation can use either '->' or ':->' as preferred, however this is only syntactic and not a type class, nor first-class arrows.
+Note: arrow notation can use either '->' or ':->' as preferred, however they are only syntactic and are not a type class, nor first-class arrows.
+=======
+Higher-order function types ~(:fn [:a :b -> :return])~ can be used to wrap arguments in contracts, each call (re)checks args and return types. A contract can be used to type a function. A contract can also be used as a return type (i.e. function that returns a function) and used to infer the type of values it operates on.
+
+While it may be possible to define /value-dependent predicates/ (e.g. to implement Π and Σ types) it's currently fragile and error prone.
+
+Note: arrow notation can use either =->= or =:->= as preferred, however this is only syntactic and not a type class, nor first-class arrows.
+>>>>>>> t0
 
 #+BEGIN_SRC janet
 (deftfn map2
@@ -742,42 +942,113 @@ All that you touch you Change. All that you Change changes you.
 —Octavia Butler, Parable of the Sower
 #+end_quote
 
-At some points of evaluation (e.g. arithmetic operations) and flow control (e.g. ~if~ branches) a variable's type can be treated as more specific (narrowed) based on use and predicate checks (~number?~, ~string?~, etc.) e.g. in the true branch of ~(= :keyword x)~, ~x~ is treated as ~:keyword~.
+<<<<<<< HEAD
+At some points of evaluation (e.g. arithmetic operations) and flow control (e.g. =if= branches) a variable's type can be treated as more specific (narrowed) based on use and predicate checks (=number?=, =string?=, etc.) e.g. in the true branch of =(= :keyword x)=, =x= is treated as =:keyword=.
+=======
+At some points of evaluation (e.g. arithmetic operations) and flow control (e.g. ~if~ branches) a variable's type can be treated as more specific (narrowed) based on use and predicate checks (~number?~, ~string?~, ~tuple?~, etc.) e.g. in the true branch of ~(string? x)~, ~x~ is treated as ~:string~.
+>>>>>>> t0
 
-This follows the occurance typing approach as described in Tobin-Hochstadt & Felleisen (2008) and Kent, Kempe & Tobin-Hochstadt (2016).
+deft supports several narrowing patterns...
+
+*** Built-in predicates
+
+Standard Janet type predicates narrow in =if= branches
+#+begin_src janet
+(import deft :prefix "")
+
+(deftn classify [x]
+  (if (string? x)
+    (string "got string: " x)           # x is narrowed to :string
+    (string "got non-string: " x)))     # x is :dynamic
+#+end_src
+
+Built-in predicates that can be used for narrowing include ~string?~, ~number?~, ~boolean?~, ~keyword?~, ~nil?~, ~symbol?~, ~tuple?~, ~array?~, ~table?~, ~struct?~, ~buffer?~, ~fiber?~
+
+*** Custom predicate narrowing
+
+User-defined predicates can be registered for narrowing with ~register-narrowing~
+
+Register a custom predicate for narrowing
+#+begin_src janet
+(register-narrowing "positive-number?" :number)
+
+(define positive-number? [x :dynamic] :boolean
+  (and (number? x) (> x 0)))
+#+end_src
+
+...and =(positive-number? x)= narrows =x= to =:number= in the if-branch
+#+BEGIN_SRC janet
+(define abs [x :dynamic] :number
+  (if (positive-number? x) x (- 0 x)))
+#+END_SRC
+
+*** Negation narrowing
+
+Negation, e.g. ~(not (pred x))~ narrows in the /else/-branch instead of the /then/-branch
+
+#+begin_src janet
+# (not (string? x)) narrows x away from :string in the then-branch
+(deftfn safe-length [x :dynamic] :number
+  (if (not (string? x)) 0 (length x)))
+#+end_src
+
+*** Collection elements
+
+When a variable has a compound type like ~(:tuple T)~, ~(in x 0)~ returns ~T~
+
+#+begin_src janet
+# (:tuple :number) types every element as :number
+(deftfn sum-pair [xs (:tuple :number)] :number
+  (+ (in xs 0) (in xs 1)))
+#+end_src
+
+*** Nested access narrowing
+
+Predicates work through tuple/array access
+
+#+begin_src janet
+(deftfn first-positive [xs :tuple] :number
+  (def x (in xs 0))
+  (if (number? x) x 0))
+#+end_src
+
+This follows the occurrence typing approach as described in Tobin-Hochstadt & Felleisen (2008) and Kent, Kempe & Tobin-Hochstadt (2016).
 
 Further: [cite:@tobin-hochstadt-felleisen-2008] occurrence typing in Typed Scheme, reference for flow-sensitive type narrowing; [cite:@kent-2016] generalisation of occurrence typing modulo external theories.
 
 ** Local Type Inference
 
-Unannotated parameters in ~deftn~ and ~define~ are inferred from usage in the function body, e.g. arithmetic operators (~+~, ~-~, ~*~, ~/~) imply ~:number~, the ~string~ function implies ~:string~, etc.
+<<<<<<< HEAD
+Unannotated parameters in =deftn= and =define= are inferred from usage in the function body, e.g. arithmetic operators (=+=, =-=, =*=, =/=) imply =:number=, the =string= function implies =:string=, etc.
+=======
+Unannotated parameters in ~define~ are inferred from usage in the function body, e.g. arithmetic operators (~+~, ~-~, ~*~, ~/~) imply ~:number~, the ~string~ function implies ~:string~, etc.
+>>>>>>> t0
 
 #+begin_src janet
-(deftn add [x y] (+ x y))  # x: :number, y: :number, return :number
-(deftn greet [a :string x] (string a x))  # x: :dynamic, return :string
+(deftn add [x y] (+ x y))                  # x & y are :number :number, return is :number
+(deftn greet [a :string x] (string a x))   # x is :dynamic, return is :string
 #+end_src
 
-See [[#type-properties-and-inference][Type properties, checking and inference]] for the details; ~infer-expression~, ~infer-expression-full~, ~fn-type-of~, ~infer-assert-type~, ~with-inference-trace~, ~enable-inference-trace~, ~deftcheck~, and ~check-form~.
+See [[#type-properties-checking-and-inference][Type properties, checking and inference]] for the details; =infer-expression=, =infer-expression-full=, =fn-type-of=, =infer-assert-type=, =with-inference-trace=, =enable-inference-trace=, =deftcheck=, and =check-form=.
 
 *** Type schemes
 
-Operators are registered with a ~:fn~ type scheme (function contract) which is used for inference.
+Operators are registered with a =:fn= type scheme (function contract) which is used for inference.
 
 |-------------+----------------------------------|
 | Operator    | Scheme                           |
 |-------------+----------------------------------|
-| ~+~, ~-~, ~*~, ~/~  | ~(:fn [:number :number] :number)~  |
-| ~string~      | ~(:fn [:dynamic] :string)~         |
-| ~string/join~ | ~(:fn [:array :string] :string)~   |
-| ~<~, ~>~, ~=~     | ~(:fn [:number :number] :boolean)~ |
-| ~not~         | ~(:fn [:boolean] :boolean)~        |
-| ~length~      | ~(:fn [:dynamic] :number)~         |
-|             | etc...                           |
+| =+=, =-=, =*=, =/=  | =(:fn [:number :number] :number)=  |
+| =string=      | =(:fn [:dynamic] :string)=         |
+| =string/join= | =(:fn [:array :string] :string)=   |
+| =<=, =>=, ===     | =(:fn [:number :number] :boolean)= |
+| =not=         | =(:fn [:boolean] :boolean)=        |
+| =length=      | =(:fn [:dynamic] :number)=         |
 |-------------+----------------------------------|
 
 *** Predicate narrowing
 
-In ~if~ branches, the condition can be used to narrow variable types in each branch environment.
+In =if= branches, the condition can be used to narrow variable types in each branch environment.
 
 #+begin_src janet
 (deftn classify [x]
@@ -798,60 +1069,55 @@ deft supports several workflows depending on where you are in a project's lifecy
 
 ** Adding types to existing code
 
-Start by converting a =defn= declaration to a ~define~, annotate any hot paths or API surfaces first, leaving internals dynamic. Run the code to validate behaviour, then add annotations as your understanding develops.
+Start by converting a =defn= declaration to a =define=, annotate any hot paths or API surfaces first, leaving internals dynamic. Run the code to validate behaviour, then add annotations as your understanding develops.
 
-Start with an unannotated function
+Start with an untyped function
 #+begin_src janet
-(define process
-  [data threshold]
+(define process [data threshold]
   (filter |(> $ threshold) data))
 #+end_src
 
 Type the boundary, leave internals dynamic
 #+BEGIN_SRC janet
-(define process
-  [data :array threshold :number]
+(deftn process [data :array threshold :number]
   (filter |(> $ threshold) data))
 #+END_SRC
 
 Tighten return type once internal behaviour is stable
 #+BEGIN_SRC janet
-(define process
-  [data :array threshold :number] :array
+(deftn process [data :array threshold :number] :array
   (filter |(> $ threshold) data))
 #+END_SRC
 
-Cast failure (blame) can tell you where any mismatch occurs; caller-blamed means the caller passed a mismatched value, function-blamed means the function returned one. Use this to locate any source of inconsistencies without requiring a full static check.
+Cast failure (blame) tells you exactly where any mismatch occurs; caller-blamed means the caller passed a mismatched value, function-blamed means the function returned one. Use this to locate any source of inconsistencies without reverting to a full static checker.
 
 Further: [cite:@siek-2015] the gradual guarantee that adding types never breaks working code.
 
 ** Writing new exploratory code
 
-Use ~define~ without return type annotations while prototyping. Any parameters that lack a type will default to ~:dynamic~ (equivalent to using =defn=), add annotations when any parameters require a specific type.
+Use =define= without return type annotations while prototyping. Any parameters that lack a type will default to =:dynamic= (equivalent to using =defn=).
 
 prototype without type annotations
 #+begin_src janet
-(define analyse
-  [data]
+(define analyse [data]
   (define helper [x] (+ 1 x))
   (map helper data))
 #+end_src
 
 As the shape solidifies, add meaningful annotations
 #+BEGIN_SRC janet
-(define analyse
-  [data :array] :array
+(define analyse [data :array] :array
   (define helper [x :number] :number (+ 1 x))
   (map helper data))
 #+END_SRC
 
-The consistency relation guarantees that every step is backwards-compatible, annotations constrain but never break existing call sites.
+The consistency relation guarantees that every step is backwards-compatible: annotations constrain but never break existing call sites.
 
 Further reading: [cite:@siek-taha-2006] The consistency relation as the foundation of backwards-compatible annotation; [cite:@siek-2015] The gradual guarantee formalised.
 
 ** Static analysis for correctness
 
-Wrap deft forms in ~deftcheck~ to run compile-time type consistency verification. Errors are reported at compile time rather than at runtime.
+Wrap deft forms in =deftcheck= to run compile-time type consistency verification. Errors are reported at compile time rather than at runtime.
 
 =deftcheck= passes when all types are consistent
 #+begin_src janet
@@ -860,12 +1126,12 @@ Wrap deft forms in ~deftcheck~ to run compile-time type consistency verification
   (deftfn greet [name :string] :string (string "Hello, " name)))
 #+end_src
 
-typed. catches return value declared as =:string= when expression yields =:number=
+typed. catches return value declared as :string when expression yields :number
 #+BEGIN_SRC janet
 (check-form '(deftfn bad-ret [x :number] :string (+ x 1)))
 #+END_SRC
 
-typed. catches arg declared as =:string= but used in arithmetic
+typed. catches arg declared as :string but used in arithmetic
 #+BEGIN_SRC janet
 (check-form '(deftfn bad-add [s :string] :number (+ 3 s)))
 #+END_SRC
@@ -875,9 +1141,9 @@ untyped. no annotations, nothing to check (passes)
 (check-form '(defn fine [s] (+ 3 s)))
 #+END_SRC
 
-The checker identifies
+The checker identifies:
 - Return type mismatches between declared and inferred types
-- Arithmetic misuse (e.g. declared ~:string~ used in ~+~, ~-~, etc.)
+- Arithmetic misuse (e.g. declared =:string= used in =+=, =-=, etc.)
 - Function type violations (e.g. wrong number of args, or incorrect types)
 - Flow-sensitive narrowing conflicts (e.g. predicate contradicts declared type)
 
@@ -891,7 +1157,7 @@ Everything is real and not real, both real and not real, neither real nor not re
 —Nagarjuna, Mūlamadhyamakakārikā 18:8
 #+end_quote
 
-When a cast fails at runtime, the blame error tells you which boundary to fix. This can be used in combination with ~deftcheck~ to catch as much as possible statically.
+When a cast fails at runtime, the blame error tells you which boundary to fix. This can be used in combination with =deftcheck= to catch as much as possible statically.
 
 entry blame. caller passes wrong type
 #+begin_src janet
@@ -925,7 +1191,7 @@ The Hive is an idea that shapes reality.
 —Ada Palmer, Too Like the Lightning
 #+end_quote
 
-Following the Typed Racket model, add types one module at a time. Untyped modules are assumed to produce ~:dynamic~ values at their exports, and typed modules insert casts at the boundary.
+Following the Typed Racket model, add types one module at a time. Untyped modules are assumed to produce =:dynamic= values at their exports, and typed modules insert casts at the boundary.
 
 untyped module. imports deft but doesn't use annotations
 #+begin_src janet
@@ -936,8 +1202,7 @@ untyped module. imports deft but doesn't use annotations
 typed module. expects correctly typed input and output
 #+BEGIN_SRC janet
 (import deft)
-(define parse-json
-  [s :string] :json
+(define parse-json [s :string] :json
   (json/decode s))
 #+END_SRC
 
@@ -947,7 +1212,7 @@ Further: [cite:@tobin-hochstadt-felleisen-2008] the Typed Scheme module-system a
 
 ** Inference and refinement
 
-Write untyped ~define~ or ~deftn~ forms and watch type inference deduce the types from usage. Use the inferred types as a guide, then add explicit annotations that match, or narrow them as needed. Types are assigned to argument bindings based on their usage in the function body.
+Write untyped =define= or =deftn= forms and watch type inference deduce the types from usage. Use the inferred types as a guide, then add explicit annotations that match, or narrow them if needed. Types are assigned to argument bindings based on their usage in the function body.
 
 An untyped function (where =x,y =:number= and =z =:string= is inferred)
 #+begin_src janet
@@ -963,19 +1228,17 @@ caller is blamed when wrong type is used...
 (process 1 2 3)          # → Type error (process:z): expected :string, got 3
 #+END_SRC
 
-Add annotations from correct inference. Any type errors should provide information about how to correctly type the boundaries. Since all symbols passed directly to ~(string ...)~ are inferred as ~:string~ (or as types that can be cast to =:string=) and arithmetic operations infer =:number= these annotations can be added.
+Add annotations from correct inference. Any type errors should provide information about how to correctly type the boundaries. Since all symbols passed directly to =(string ...)= are inferred as =:string= (or as types that can be cast to =:string=) and arithmetic operations infer =:number= these annotations can be added.
 
 #+BEGIN_SRC janet
-(define process
-  [x :number y :number z :string]
+(define process [x :number y :number z :string]
   (def sum (+ x y))
   (string sum z))
 #+END_SRC
 
 Add a suitable type for the expected return value
 #+BEGIN_SRC janet
-(deftn process
-  [x :number y :number z :string] :string
+(deftn process [x :number y :number z :string] :string
   (def sum (+ x y))
   (string sum z))
 #+END_SRC
@@ -985,12 +1248,12 @@ The return type can be computed directly by using the =type= function
 (type (process 2 3 "items")) # returns :string
 #+END_SRC
 
-To help with adding annotations, you can query the inferred types using ~fn-type-of~
+To help with adding annotations, you can query the inferred types using =fn-type-of=
 #+begin_src janet
 (fn-type-of 'process)  # => (:fn @[:number :number :string] :string)
 #+end_src
 
-...or test individual expressions with ~infer-expression~
+...or test individual expressions with =infer-expression=
 #+begin_src janet
 (infer-expression '(+ x y) @{:x :number :y :number}) # => :number
 #+end_src
@@ -1005,7 +1268,7 @@ Further: [cite:@siek-vachharajani-2008]
 
 ** Static verification
 
-Use ~check-form~ to statically verify any form without executing it
+Use =check-form= to statically verify any form without executing it
 
 #+BEGIN_SRC janet
 (check-form '(deftn add [a b] (+ a b)))
@@ -1023,12 +1286,11 @@ Further: [cite:@siek-vachharajani-2008] on inference-first refinement; [cite:@si
 
 ** Contract escalation
 
-Start with simple type annotations, escalate to higher-order ~:fn~ contracts for critical boundaries that need per-call argument and return-value checks. [cite:@findler-felleisen-2002]
+Start with simple type annotations, escalate to higher-order =:fn= contracts for critical boundaries that need per-call argument and return-value checks. [cite:@findler-felleisen-2002]
 
 * References and reading
 
 A comprehensive overview of gradual typing research can be found in the [[https://samth.github.io/gradual-typing-bib/][Gradual Typing Bibliography]].
-
 
  - *Gradual Typing for Functional Languages*, Siek & Taha 2006. [cite:@siek-taha-2006] Foundations of the consistency relation and typing with :dynamic. [[http://scheme2006.cs.uchicago.edu/13-siek.pdf][Scheme and Functional Programming Workshop 2006]]
  - *Refined Criteria for Gradual Typing*, Siek et al. 2015. [cite:@siek-2015] Formalises the gradual guarantee: adding type annotations to a term never breaks existing well-typed programs under the same (or more permissive) typing context. [[https://doi.org/10.4230/LIPIcs.SNAPL.2015.274][10.4230/LIPIcs.SNAPL.2015.274]]
@@ -1037,8 +1299,10 @@ A comprehensive overview of gradual typing research can be found in the [[https:
  - *Occurrence Typing Modulo Theories*, Kent, Kempe & Tobin-Hochstadt 2016. [cite:@kent-2016]  Generalisation of occurrence typing to work with external predicate theories, narrowing variable types under arbitrary compound predicates. [[https://doi.org/10.1145/2908080.2908091][10.1145/2908080.2908091]]
  - *Dynamic Type Inference for Gradual Hindley–Milner*, Miyazaki, Sekiyama & Igarashi 2019. [cite:@miyazaki-2019] Extension of gradual inference to a Hindley–Milner style. [[https://doi.org/10.1145/3290331][10.1145/3290331]]
  - *The Safe TypeScript Type System*, Rastogi et al. 2015. [cite:@rastogi-2015] Ahead-of-time static verification for hybrid typed-untyped programs. [[https://doi.org/10.1145/2676726.2676971][10.1145/2676726.2676971]]
- - *Exploring the Design Space of Higher-Order Casts*, Siek, Garcia & Taha 2009. [cite:@siek-garcia-taha-2009] [[https://doi.org/10.1007/978-3-642-00590-9_2][10.1007/978-3-642-00590-9_2]]
+ - *Exploring the Design Space of Higher-Order Casts*, Siek, Garcia & Taha 2009. [cite:@siek-garcia-taha-2009] DOI: [[https://doi.org/10.1007/978-3-642-00590-9_2][10.1007/978-3-642-00590-9_2]]
  - *Gradual Typing with Unification-Based Inference*, Siek & Vachharajani 2008. [cite:@siek-vachharajani-2008] Local type inference for unannotated parameters. [[https://doi.org/10.1145/1408681.1408688][10.1145/1408681.1408688]]
  - *The Design and Implementation of Typed Scheme*, Tobin-Hochstadt & Felleisen 2008. [cite:@tobin-hochstadt-felleisen-2008]  Occurrence typing, flow-sensitive type narrowing based on predicate checks. The module boundary approach for progressive typing. [[https://doi.org/10.1145/1328438.1328486][10.1145/1328438.1328486]]
- - *Well-Typed Programs Can't Be Blamed*, Wadler & Findler 2009. [cite:@wadler-findler-2009] Blame assignment for runtime casts. [[https://doi.org/10.1007/978-3-642-00590-9_1][10.1007/978-3-642-00590-9_1]]
+ - *Well-Typed Programs Can't Be Blamed*, Wadler & Findler 2009. [cite:@wadler-findler-2009] Blame assignment for runtime casts. DOI: [[https://doi.org/10.1007/978-3-642-00590-9_1][10.1007/978-3-642-00590-9_1]]
  - *Type-Driven Development with Idris*, Edwin Brady 2017. [cite:@brady-2017] Practical introduction to type-driven development using dependent types. ISBN 9781617293023
+
+#+print_bibliography:
