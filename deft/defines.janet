@@ -1,7 +1,6 @@
 # -*- mode: janet; -*-
 # deft/defines: typed definition macros (define, deftn, deftrecord, etc.)
 
-
 (use ./core)
 (use ./inference)
 (use ./dispatch)

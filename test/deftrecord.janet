@@ -57,6 +57,39 @@
 (cassert "optional positional" (config-host c3) "redis")
 (cassert "optional positional port" (config-port c3) 6379)
 
+(print "\n* deftrecord: optional positional default nil")
+
+(deftrecord :multi-opt
+  (field id :number)
+  (optional a :number)
+  (optional b :number)
+  (optional c :number))
+
+(def mo0 (make-multi-opt 1))
+(cassert "mo0 a nil" (multi-opt-a mo0) nil)
+(cassert "mo0 b nil" (multi-opt-b mo0) nil)
+(cassert "mo0 c nil" (multi-opt-c mo0) nil)
+
+(def mo1 (make-multi-opt 2 10))
+(cassert "mo1 a set" (multi-opt-a mo1) 10)
+(cassert "mo1 b nil" (multi-opt-b mo1) nil)
+(cassert "mo1 c nil" (multi-opt-c mo1) nil)
+
+(def mo2 (make-multi-opt 3 10 20))
+(cassert "mo2 a set" (multi-opt-a mo2) 10)
+(cassert "mo2 b set" (multi-opt-b mo2) 20)
+(cassert "mo2 c nil" (multi-opt-c mo2) nil)
+
+(def mo3 (make-multi-opt 4 10 20 30))
+(cassert "mo3 a set" (multi-opt-a mo3) 10)
+(cassert "mo3 b set" (multi-opt-b mo3) 20)
+(cassert "mo3 c set" (multi-opt-c mo3) 30)
+
+(def mo4 (make-multi-opt 5 :b 22 :c 33))
+(cassert "mo4 a nil via kw" (multi-opt-a mo4) nil)
+(cassert "mo4 b set via kw" (multi-opt-b mo4) 22)
+(cassert "mo4 c set via kw" (multi-opt-c mo4) 33)
+
 (print "\n* deftrecord: guard")
 
 (deftrecord :positive-pair

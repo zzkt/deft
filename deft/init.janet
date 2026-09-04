@@ -8,6 +8,7 @@
 (import ./check :prefix "" :export true)
 (import ./wolves :prefix "" :export true)
 (import ./defines :prefix "" :export true)
+(import ./typecase :prefix "" :export true)
 (import ./pp :prefix "" :export true)
 
 # Reference table for macroexpansion access to runtime declarations
@@ -24,3 +25,5 @@
 (put deft-refs 'unregister-type unregister-type)
 (put deft-refs 'untype untype)
 (put deft-refs 'inferred-fn-types (fn [] *inferred-fn-types*))
+(put deft-refs 'isa? isa?)
+(put deft-refs 'type= type=)

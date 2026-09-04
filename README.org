@@ -16,7 +16,7 @@ In typed code, types appear at call boundaries (function call and return, value 
 Various features, in no particular order
 - Gradual typing with blame (co-existence of static/dynamic typing)
 - NQ-Dependent types (types as predicates. Lacking Π or Σ types)
-- Compound types (untagged union, intersection, sum, and container types)
+- Compound types (untagged union/intersection/sum ADTs, and container types)
 - Record types (typed structs)
 - Higher-order contracts (typed functions)
 - Bidrectional inference (with unification)
@@ -138,7 +138,7 @@ Typed function bodies are wrapped in arg casts (checking each argument) and a re
 The =define= macro replaces the need to choose between ~defn~, ~deftfn~, ~var, ~def~, and ~deftval~ and provides a smooth (gradual) way of moving from untyped to typed code and back.
 
 |-----------------------------------------+----------------------------------------------|
-| Shape                                   | Behaviour                                    |
+| *Shape*                                   | *Behaviour*                                    |
 |-----------------------------------------+----------------------------------------------|
 | =(define name [args+types] :ret body...)= | Typed function (all params annotated)        |
 | =(define name [args] body...)=            | Untyped function with inference via =deftn=    |
@@ -206,49 +206,58 @@ Further: [cite:@siek-taha-2006] on the consistency relation extended to custom p
 ** Typed functions
 *** =deftfn=
 
-Define a gradually typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. =deftfn= inserts runtime argument and return checks but does *not* register a =:fn= type scheme, so =fn-type-of= will not work for functions defined with =deftfn=. Use =deftn= or =define= if you need to query a function's type at runtime.
+Define a gradually typed function. Every parameter must be followed by a type spec, the return type comes after the parameter vector. =deftfn= inserts runtime argument and return checks but does *not* register a =:fn= type scheme, so =fn-type-of= will not work for functions defined with =deftfn=. Use =define= if you need to query a function's type at runtime.
 
 *** =deftfn-=
 
-Like =deftfn= but defines a private function (c.f =defn-=)
+Like =deftfn= but defines a private typed function (c.f =defn-=)
 
 *** optional, keyword and ignored arguments
 
 Following the semantics of of Janet's =fn=, arguments to =define= can include keywords and optional arguments.
 
-Optional arguments with =&opt= default to =nil= and work as expected with the =default= macro
+Optional arguments are declared with =&opt=, default to =nil= and should work as expected with the =default= macro
 #+BEGIN_SRC janet
-(deftn opt [a b c &opt d e f]
+(define opt [a b c &opt d e f]
   (default d 10)
   (default e 11)
   (default f 12)
   (+ a b c d e f))
+
 (opt 1 2 3)         # => 39
 (opt 1 2 3 4 5 6)   # => 21
 #+END_SRC
 
-Keyword arguments with =&keys= bind named keyword parameters to local symbols
+Keyword arguments are declared with =&keys= and bind named =:keyword= parameters in function scope.
 #+BEGIN_SRC janet
-(deftn greet [name :string &keys {:greeting :string}]
+(define greet
+  [name :string &keys {:greeting :string}]
   (string greeting ", " name "!"))
-(greet "World" :greeting "Hello")  # => "Hello, World!"
 
-(deftn draw [x :number &opt y :number &keys {:color :string}]
+(greet "World" :greeting "Hello")  # => "Hello, World!"
+#+END_SRC
+
+#+BEGIN_SRC janet
+(deftn draw
+  [x :number &opt y :number &keys {:color :string}]
   (default y 0)
   (string color ": " (+ x y)))
+
 (draw 1 2 :color "red")  # => "red: 3"
 #+END_SRC
 
 Variadic functions can be defined by including the =&= symbol for rest args. The rest tuple is untyped (i.e. =:dynamic=) by default.
 #+BEGIN_SRC janet
-(deftn sum
+(define sum
   [& xs :number]
   (var total 0)
   (each n xs (+= total n))
   total)
 (sum 1 2 3)  # => 6
+#+END_SRC
 
-(deftn mix
+#+BEGIN_SRC janet
+(define mix
   [x :number &opt y :number & tail :number]
   (default y 0)
   (+ x y (length tail)))
@@ -257,7 +266,7 @@ Variadic functions can be defined by including the =&= symbol for rest args. The
 Adding a type annotation after the rest name types all the rest elements.
 #+BEGIN_SRC janet
 (define long
-  [x :number & xs] :number
+  [x :number & xs :number] :number
   (+ x (length xs)))
 
 (long 1 2 3 4)  # => 4
@@ -346,7 +355,7 @@ Compound type expressions can be used in parameter or return positions without a
 
 *** =deftrecord=
 
-Define a named structural record type with typed field declarations usinf =deftrecord=. A definition will generate a constructor, accessors, mutators (if mutable), and an optional =:pp= pretty-print handler.
+Define a named structural record type with typed field declarations using =deftrecord=. A definition will generate a constructor, accessors, mutators (if mutable), and an optional =:pp= pretty-print handler.
 
 *Generated functions*
 |--------------------+--------------------------|
@@ -361,7 +370,7 @@ A record declaration consists of a keyword (the type) and field clauses. Require
 
 *Field clauses*
 - =(field name type)= — required positional argument
-- =(optional name type)= — optional positional argument (defaults to =nil=), can also be set via =:keyword value=
+- =(optional name type)= — optional positional argument (defaults to =nil=), which can also be set via =:keyword value=
 - =(guard predicate-function)= — optional guard predicate (for any extra validation)
 - =(=print handler-function)= — optional custom pretty-print handler (for string based output)
 
@@ -391,7 +400,7 @@ If a field is mutable, a mutator can be used to set the value of the field.
 (set-person-age p1 31) # returns {:name "Alice" :age 31 :title nil :nickname nil}
 #+END_SRC
 
-A definition can include guard predicates which have access to the declared fields. A guard predicate follows the same semantics as a type predicate. A guard can extend the validation of a single field (c.f. type narrowing) and also validate relations between fields. e.g. a guard can be used to check that an =end= field of type =:datetime= occurs later than the =start= field.
+A definition can include a guard predicate which has access to the declared fields. A guard predicate follows the same semantics as a type predicate. A guard can extend the validation of a single field (c.f. type narrowing) and also validate relations between fields. e.g. a guard can be used to check that an =end= field of type =:datetime= occurs later than the =start= field.
 
 #+begin_src janet
 (deftrecord :timeframe
@@ -474,6 +483,36 @@ Returns the type of a value. For values tagged with a user defined type it retur
 (type 42)          # returns :number   (no tag, core fallback)
 #+end_src
 
+*** =typecase= (and =typecase-strict=)
+
+Conditional forms for type driven flow control. A =typecase= matches clauses with =isa?= (which will match if the value satifies the given type's predicate or guard), while =typecase-strict= matches with ~type=~ (explicit type equality). In both forms, the value is evaluated exactly once. The result is =nil= when no clause matches.
+
+#+begin_src janet
+(typecase value
+  :number "n"
+  :string "str")
+
+(typecase 5 :posint "pos")   # => "pos"
+(typecase -5 :posint "pos")  # => nil (guard rejects)
+(typecase 42 :number "n")    # => "n"
+(typecase true :number "n")  # => nil (no match, default finaliser)
+(typecase-strict -5 :posint "pos") # => nil (raw type, no :posint clause)
+#+end_src
+
+A =finaliser= may be supplied as the final argument. When no clause matches, the finalser function is called with the value.
+
+#+begin_src janet
+(typecase value
+  :number "n"
+  :string "str"
+  (fn [x] (string "no match: " x)))
+
+(typecase true
+  :number "n"
+  :string "str"
+  (fn [x] (string "no match: " x)))   # => "no match: true"
+#+end_src
+
 *** =:type=
 
 The type =:type= is the type of types. A type whose values are themselves types. Functions can take and return values of type =:type= (metaprogramming with types if you are into that sort of thing)
@@ -493,7 +532,7 @@ Further: [cite:@brady-2017].
 
 *** =isa?=
 
-Runtime type check. Tests a value directly against a type predicate, bypassing any declared type. A value can match a type without that type being explicitly declared.
+Runtime type check. Tests a value directly against a type predicate, bypassing any declared type. A value can match a type without the type being explicitly declared.
 
 #+begin_src janet
 (isa? 42 :number)    # true
@@ -509,6 +548,7 @@ Check if a value's type matches a given type. Uses the extended ~type~ to includ
 
 #+begin_src janet
 (deftval three :positive 3)
+(type= three :positive)  # true
 (type= three :positive)  # true
 (type= three :number)    # false  (tagged :positive)
 (type= 42 :number)       # true   (no tag, core fallback)
