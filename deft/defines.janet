@@ -324,10 +324,14 @@ Generates constructor, accessors, mutators and pp handler based on record/field 
  - set-<name>-<field> mutators
 
 Each field clause is either:
-  (field name type)         — required positional arg
-  (optional name type)      — optional positional arg (default nil)
-  (guard pred-fn)           — optional guard predicate
-  (print print-fn)          — optional custom printer
+  (field name type [default])      — positional arg (required, or defaulted if given)
+  (optional name type [default])   — optional positional arg (default nil or given)
+  (guard pred-fn)                  — optional guard predicate
+  (print print-fn)                 — optional custom printer
+
+A trailing `default` on a `field` or `optional` clause supplies the
+instantiation value used when the argument is not provided. A `field`
+with a default becomes optional (not required to construct).
 ```
   [name & clauses]
   (let [register-type-fn (deft-ref 'register-type)
@@ -339,10 +343,19 @@ Each field clause is either:
                        (and (tuple? c)
                             (= tag
                                (last (string/split "/" (string (first c)))))))
-        req-fields (filter (fn [c] (clause-type? c "field")) clauses)
-        opt-fields (filter (fn [c] (clause-type? c "optional")) clauses)
-        all-fields (array/concat (array/slice req-fields)
-                                 (array/slice opt-fields))
+        has-default? (fn [f] (> (length f) 3))
+        req-fields (filter (fn [c] (and (clause-type? c "field")
+                                        (not (has-default? c))))
+                           clauses)
+        all-fields (mapcat (fn [c] (if (or (clause-type? c "field")
+                                           (clause-type? c "optional"))
+                                     @[c] @[]))
+                           clauses)
+        # optional-like fields in declaration order: `optional` clauses and
+        # any `field` clause carrying a default value (so it need not be supplied)
+        opt-group (filter (fn [c] (or (clause-type? c "optional")
+                                      (has-default? c)))
+                          clauses)
         guard-clauses (filter (fn [c] (clause-type? c "guard"))
                               clauses)
         guard-fn (if (> (length guard-clauses) 0) ((guard-clauses 0) 1) nil)
@@ -355,6 +368,7 @@ Each field clause is either:
         field-kws (map (fn [f] (keyword (f 1))) all-fields)
         field-types (map (fn [f] (f 2)) all-fields)
         req-kws (map (fn [f] (keyword (f 1))) req-fields)
+        opt-kws (map (fn [f] (keyword (f 1))) opt-group)
         make-sym (symbol (string "make-" prefix))
         args-sym (gensym)
         idx-sym (gensym)
@@ -363,10 +377,10 @@ Each field clause is either:
 
     (with-syms [pv ov env]
       (def do-body @[])
-      (array/push do-body
-        ~(,register-type-fn ',name
-             (fn [,pv] ,(build-struct-pred pv field-kws field-types
-                          (map (fn [f] (keyword (f 1))) opt-fields)))))
+        (array/push do-body
+          ~(,register-type-fn ',name
+               (fn [,pv] ,(build-struct-pred pv field-kws field-types
+                            opt-kws))))
       (when guard-fn
         (array/push do-body
           ~(,register-guard-fn ',name ,guard-fn)))
@@ -406,7 +420,8 @@ Each field clause is either:
                                 (map (fn [i] (tuple 'get args-sym i))
                                      (range (length req-kws))))
             opt-bodies (map (fn [f]
-                              (let [kw (keyword (f 1))]
+                              (let [kw (keyword (f 1))
+                                    default-form (if (has-default? f) (f 3) nil)]
                                 (tuple 'if
                                   (tuple 'and
                                     (tuple '< idx-sym
@@ -416,8 +431,8 @@ Each field clause is either:
                                   (tuple 'do
                                     (tuple 'put ov kw (tuple 'get args-sym idx-sym))
                                     (tuple '++ idx-sym))
-                                  (tuple 'put ov kw nil))))
-                            opt-fields)
+                                  (tuple 'put ov kw default-form))))
+                            opt-group)
             kw-loop (tuple 'while (tuple '< idx-sym (tuple 'length args-sym))
                      (tuple 'do
                        (tuple 'def k-sym (tuple 'get args-sym idx-sym))

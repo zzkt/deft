@@ -369,11 +369,12 @@ Define a named structural record type with typed field declarations using =deftr
 A record declaration consists of a keyword (the type) and field clauses. Required fields are declared first, then optional, then keyword pairs.
 
 *Field clauses*
-- =(field name type)= — required positional argument
-- =(optional name type)= — optional positional argument (defaults to =nil=), which can also be set via =:keyword value=
+- =(field name type [default])= — positional argument; required unless a =default= is given
+- =(optional name type [default])= — optional positional argument (defaults to =nil= or a given =default=), which can also be set via =:keyword value=
 - =(guard predicate-function)= — optional guard predicate (for any extra validation)
 - =(=print handler-function)= — optional custom pretty-print handler (for string based output)
 
+Consider a =:person=, for example
 #+BEGIN_SRC janet
 (deftrecord :person
    (field name :string)
@@ -398,6 +399,17 @@ An accessor can be used to return the value of a field.
 If a field is mutable, a mutator can be used to set the value of the field.
 #+BEGIN_SRC janet
 (set-person-age p1 31) # returns {:name "Alice" :age 31 :title nil :nickname nil}
+#+END_SRC
+
+Adding a =default= value to a =field= or =optional= declaratoion provides an instantiation value if the argument is not provided. Any =field= with a =default= value therefore becomes optional at creation.
+
+#+BEGIN_SRC janet
+(deftrecord :settings
+   (field host :string "localhost")
+   (field port :number)
+   (optional user :string "nobody"))
+
+(make-settings 9999) # => @{:host "localhost" :port 9999 :user "nobody"}
 #+END_SRC
 
 A definition can include a guard predicate which has access to the declared fields. A guard predicate follows the same semantics as a type predicate. A guard can extend the validation of a single field (c.f. type narrowing) and also validate relations between fields. e.g. a guard can be used to check that an =end= field of type =:datetime= occurs later than the =start= field.

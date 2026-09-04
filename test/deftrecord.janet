@@ -191,4 +191,33 @@
 (cassert "opt-queue with args" (= (tuple ;(opt-queue-data q4)) (tuple 4 5)) true)
 (cassert "opt-queue head" (opt-queue-head q4) 2)
 
+(print "\n* deftrecord: field and optional default values")
+
+(deftrecord :person
+  (field age :number)
+  (field name :string "Unnamed")
+  (optional nickname :string "anon")
+  (optional tags :array @[]))
+
+(def pe1 (make-person 30 "Al"))
+(cassert "required field" (person-age pe1) 30)
+(cassert "defaulted field supplied" (person-name pe1) "Al")
+(cassert "optional defaulted from clause" (person-nickname pe1) "anon")
+(cassert "optional defaulted array" (= (tuple ;(person-tags pe1)) (tuple)) true)
+
+(def pe2 (make-person 30))
+(cassert "required field present" (person-age pe2) 30)
+(cassert "defaulted field not supplied" (person-name pe2) "Unnamed")
+(cassert "defaulted optional not supplied" (person-nickname pe2) "anon")
+
+(def pe3 (make-person 30 "Al" :nickname "Ally"))
+(cassert "kw overrides defaulted optional" (person-nickname pe3) "Ally")
+
+(def pe4 (make-person 30 "Al" "Ally" @[1 2]))
+(cassert "positional overrides defaulted optional (nickname)" (person-nickname pe4) "Ally")
+(cassert "positional overrides defaulted optional (tags)" (= (tuple ;(person-tags pe4)) (tuple 1 2)) true)
+
+(cassert "defaulted record still isa?" (isa? pe2 :person) true)
+(cassert-err "rejects wrong type for required field" (make-person "bad" 30))
+
 (print-results)
