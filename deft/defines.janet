@@ -336,6 +336,7 @@ with a default becomes optional (not required to construct).
   [name & clauses]
   (let [register-type-fn (deft-ref 'register-type)
         cast-fn (deft-ref 'cast)
+        tag-value-fn (deft-ref 'tag-value)
         register-guard-fn (deft-ref 'register-guard)
         pp-str-fn (deft-ref 'pp-str)
         prefix (string/replace ":" "" (string name))
@@ -343,7 +344,8 @@ with a default becomes optional (not required to construct).
                        (and (tuple? c)
                             (= tag
                                (last (string/split "/" (string (first c)))))))
-        has-default? (fn [f] (> (length f) 3))
+        # A docstring must not be mistaken for field with default value.
+        has-default? (fn [f] (and (tuple? f) (> (length f) 3)))
         req-fields (filter (fn [c] (and (clause-type? c "field")
                                         (not (has-default? c))))
                            clauses)
@@ -448,6 +450,7 @@ with a default becomes optional (not required to construct).
             _ (array/push body-parts (tuple cast-fn ov
                                             (tuple 'quote name)
                                             (string "make-" prefix)))
+            _ (array/push body-parts (tuple tag-value-fn ov (tuple 'quote name)))
             _ (array/push body-parts ov)
             constructor (tuple 'fn (tuple '& args-sym)
                                 (apply tuple 'do body-parts))]

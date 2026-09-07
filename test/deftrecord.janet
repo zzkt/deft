@@ -220,4 +220,28 @@
 (cassert "defaulted record still isa?" (isa? pe2 :person) true)
 (cassert-err "rejects wrong type for required field" (make-person "bad" 30))
 
+(print "\n* deftrecord: docstring does not leak into constructor")
+
+(deftrecord :anchored
+  "A documented record with a prose docstring (longer than 3 chars)."
+  (field x :number 0)
+  (field y :number 0))
+
+(def na (make-anchored 1 2))
+(cassert "docstring does not shift positional args (x)" (anchored-x na) 1)
+(cassert "docstring does not shift positional args (y)" (anchored-y na) 2)
+
+(def nk (make-anchored :x 3 :y 4))
+(cassert "docstring unaffected by keyword construction (x)" (anchored-x nk) 3)
+(cassert "docstring unaffected by keyword construction (y)" (anchored-y nk) 4)
+
+(deftrecord :curt
+  "ab"
+  (field p :number 0)
+  (field q :number 0))
+
+(def nc (make-curt 5 6))
+(cassert "short docstring still maps positionally (p)" (curt-p nc) 5)
+(cassert "short docstring still maps positionally (q)" (curt-q nc) 6)
+
 (print-results)
