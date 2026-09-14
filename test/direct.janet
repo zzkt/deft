@@ -1,4 +1,4 @@
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (var *tvar-counter* 0)
 (defn fresh-tvar []

@@ -2,7 +2,7 @@
 # deft tests: bidirectional inference
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* bidirectional inference")
 
@@ -102,5 +102,35 @@
   (def result (f x))
   result)
 (cassert "inf-fn-var str" (inf-fn-var string 42) "42")
+
+(print "\n* polymorphic equality")
+
+# equality compares any two values; a fresh variable compared with a
+# dynamic (or other fresh) operand must not be forced to :number
+(deftn inf-cmp-dyn [node w]
+  (var total 0)
+  (when (= w node) (++ total))
+  total)
+(cassert "inf-cmp-dyn mixed" (inf-cmp-dyn 5 "a") 0)
+(cassert "inf-cmp-dyn match" (inf-cmp-dyn 5 5) 1)
+(def inf-cmp-dyn-args (get (fn-type-of 'inf-cmp-dyn) 1))
+(cassert "inf-cmp-dyn node stays dynamic"
+  (get inf-cmp-dyn-args 0) :dynamic)
+
+(cassert "inf-cmp-dyn not= scheme present"
+  (= (in *op-type-schemes* "not=") '(:fn :any :any :boolean)) true)
+
+# (each [n c] (pairs ...) ...) + (= n node) inside when must not
+# narrow an unannotated node arg to :number (multigraph-degree pattern)
+(deftn inf-each-cmp [g node]
+  (var total 0)
+  (each [n c] (pairs (in g node))
+    (when (= n node) (++ total)))
+  total)
+(cassert "inf-each-cmp string node" (inf-each-cmp @{"a" @{}} "a") 0)
+(cassert "inf-each-cmp number node" (inf-each-cmp @{5 @{}} 5) 0)
+(def inf-each-cmp-args (get (fn-type-of 'inf-each-cmp) 1))
+(cassert "inf-each-cmp node stays dynamic"
+  (get inf-each-cmp-args 1) :dynamic)
 
 (print-results)

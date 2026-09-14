@@ -2,7 +2,7 @@
 # deft tests: type, type?
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* type?")
 

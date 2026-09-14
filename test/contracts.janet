@@ -1,7 +1,7 @@
 # -*- mode: janet; -*-
 # deft tests: function contracts
 
-(import ../deft :prefix "")
+(import deft :prefix "")
 (import ./helper :prefix "")
 
 (print "* function contracts")

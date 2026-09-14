@@ -2,7 +2,7 @@
 # deft tests: mutability
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* mutable / immutable types")
 

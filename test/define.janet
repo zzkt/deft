@@ -2,7 +2,7 @@
 # deft tests: define
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* define")
 

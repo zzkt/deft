@@ -2,7 +2,7 @@
 # deft tests: container types (:array, :tuple, :table)
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* container types")
 

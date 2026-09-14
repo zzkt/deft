@@ -1,157 +1,202 @@
-% papers, literature and related reading
-
-@inproceedings{siek-taha-2006,
-  author    = {Siek, Jeremy G. and Taha, Walid},
-  title     = {Gradual Typing for Functional Languages},
-  booktitle = {Scheme and Functional Programming Workshop},
-  year      = {2006},
-  url       = {http://scheme2006.cs.uchicago.edu/13-siek.pdf},
-  note      = {Foundations of the consistency relation and typing with :dynamic.}
+@book{brady-2017,
+  title = {Type-{{Driven Development}} with {{Idris}}},
+  author = {Brady, Edwin},
+  date = {2017},
+  publisher = {Manning Publications},
+  isbn = {978-1-61729-302-3},
+  note = {Practical introduction to type-driven development using dependent types in Idris, demonstrating how types can guide program construction and verification.}
 }
 
-@incollection{siek-garcia-taha-2009,
-  author    = {Siek, Jeremy G. and Garcia, Ronald and Taha, Walid},
-  title     = {Exploring the Design Space of Higher-Order Casts},
-  booktitle = {Programming Languages and Systems (ESOP 2009)},
-  publisher = {Springer},
-  year      = {2009},
-  doi       = {10.1007/978-3-642-00590-9_2},
-  isbn      = {978-3-642-00589-3},
-  pages     = {17--31},
-  note      = {Refined higher-order cast semantics, and the :fn contract wrapper.}
+@book{Calvino_2011,
+  title = {The {{Complete Cosmicomics}}},
+  author = {Calvino, Italo},
+  date = {2011-09-01},
+  publisher = {Penguin Books},
+  abstract = {Enchanting stories about the evolution of the universe, with characters that are fashioned from mathematical formulae and cellular structures. They disport themselves among galaxies, experience the solidification of planets, move from aquatic to terrestrial existence, play games with hydrogen atoms - and have time for a love life. 'Naturally, we were all there, - old Qfwfq said, - where else could we have been? Nobody knew then that there could be space. Or time either: what use did we have for time, packed in there like sardines?'},
+  isbn = {978-0-14-188955-9},
+  langid = {english},
+  pagetotal = {470},
+  keywords = {Fiction / General,Fiction / Short Stories (single author)},
 }
 
-@inproceedings{findler-felleisen-2002,
-  author    = {Findler, Robert Bruce and Felleisen, Matthias},
-  title     = {Contracts for Higher-Order Functions},
-  booktitle = {Proceedings of the Seventh ACM SIGPLAN International Conference on Functional Programming (ICFP)},
-  year      = {2002},
-  doi       = {10.1145/581478.581484},
-  pages     = {48--59},
-  note      = {Function contract boundaries and higher-order contracts.}
-}
-
-@inproceedings{garcia-2016,
-  author    = {Garcia, Ronald and Clark, Alison M. and Tanter, {\'E}ric and Siek, Jeremy G.},
-  title     = {Abstracting Gradual Typing},
-  booktitle = {Proceedings of the 43rd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)},
-  year      = {2016},
-  doi       = {10.1145/2837614.2837670},
-  pages     = {423--437},
-  note      = {Provides an abstract-specification framework for gradual type systems via the abstracting discipline. Unifying the design space of consistency, predicates, and the gradual guarantee.}
-}
-
-@inproceedings{kent-2016,
-  author    = {Kent, Andrew M. and Kempe, David and Tobin-Hochstadt, Sam},
-  title     = {Occurrence Typing Modulo Theories},
-  booktitle = {Proceedings of the 37th ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
-  year      = {2016},
-  doi       = {10.1145/2908080.2908091},
-  pages     = {296--309},
-  note      = {Generalisation of occurrence typing to work with external predicate theories, narrowing variable types under arbitrary compound predicates.}
-}
-
-@article{miyazaki-2019,
-  author    = {Miyazaki, Yudai and Sekiyama, Taro and Igarashi, Atsushi},
-  title     = {Dynamic Type Inference for Gradual {Hindley--Milner}},
-  journal   = {ACM Transactions on Programming Languages and Systems (TOPLAS)},
-  year      = {2019},
-  volume    = {41},
-  number    = {1},
-  pages     = {5:1--5:59},
-  doi       = {10.1145/3290331},
-  note      = {Extension of gradual inference to a Hindley--Milner style.}
-}
-
-@inproceedings{rastogi-2015,
-  author    = {Rastogi, Aseem and Swamy, Nikhil and Fournet, C{\'e}dric and Bierman, Gavin and Vekris, Panagiotis},
-  title     = {Safe \& Efficient Gradual Typing for {TypeScript}},
-  booktitle = {Proceedings of the 42nd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)},
-  year      = {2015},
-  doi       = {10.1145/2676726.2676971},
-  pages     = {167--180},
-  note      = {Ahead-of-time static verification for hybrid typed-untyped programs.}
+@article{Castagna_2023,
+  title = {The {{Design Principles}} of the {{Elixir Type System}}},
+  author = {Castagna, Giuseppe and Duboc, Guillaume and Valim, José},
+  date = {2023-10-15},
+  journaltitle = {The Art, Science, and Engineering of Programming},
+  shortjournal = {Art Sci. Eng. Program.},
+  volume = {8},
+  number = {2},
+  eprint = {2306.06391},
+  eprinttype = {arXiv},
+  eprintclass = {cs.PL},
+  pages = {4},
+  issn = {2473-7321},
+  doi = {10.22152/programming-journal.org/2024/8/4},
+  abstract = {Elixir is a dynamically-typed functional language running on the Erlang Virtual Machine, designed for building scalable and maintainable applications. Its characteristics have earned it a surging adoption by hundreds of industrial actors and tens of thousands of developers. Static typing seems nowadays to be the most important request coming from the Elixir community. We present a gradual type system we plan to include in the Elixir compiler, outline its characteristics and design principles, and show by some short examples how to use it in practice. Developing a static type system suitable for Erlang's family of languages has been an open research problem for almost two decades. Our system transposes to this family of languages a polymorphic type system with set-theoretic types and semantic subtyping. To do that, we had to improve and extend both semantic subtyping and the typing techniques thereof, to account for several characteristics of these languages -- and of Elixir in particular -- such as the arity of functions, the use of guards, a uniform treatment of records and dictionaries, the need for a new sound gradual typing discipline that does not rely on the insertion at compile time of specific run-time type-tests but, rather, takes into account both the type tests performed by the virtual machine and those explicitly added by the programmer. The system presented here is "gradually" being implemented and integrated in Elixir, but a prototype implementation is already available. The aim of this work is to serve as a longstanding reference that will be used to introduce types to Elixir programmers, as well as to hint at some future directions and possible evolutions of the Elixir language.},
+  keywords = {Computer Science - Programming Languages},
 }
 
 @article{dunfield-krishnaswami-2021,
-  author    = {Dunfield, Jana and Krishnaswami, Neelakantan R.},
-  title     = {Bidirectional Typing},
-  journal   = {ACM Computing Surveys},
-  year      = {2021},
-  volume    = {54},
-  number    = {5},
-  pages     = {98:1--98:38},
-  doi       = {10.1145/3450952},
-  note      = {Comprehensive survey of bidirectional type systems.}
+  title = {Bidirectional {{Typing}}},
+  author = {Dunfield, Jana and Krishnaswami, Neelakantan R.},
+  date = {2021},
+  journaltitle = {ACM Computing Surveys},
+  shortjournal = {ACM Comput. Surv.},
+  volume = {54},
+  number = {5},
+  pages = {98:1--98:38},
+  doi = {10.1145/3450952},
+  note = {Comprehensive survey of bidirectional type systems.},
 }
 
-@inproceedings{siek-vachharajani-2008,
-  author    = {Siek, Jeremy G. and Vachharajani, Manish},
-  title     = {Gradual Typing with Unification-Based Inference},
-  booktitle = {Proceedings of the 2008 Symposium on Dynamic Languages (DLS)},
-  year      = {2008},
-  doi       = {10.1145/1408681.1408688},
-  pages     = {7:1--7:12},
-  note      = {Local type inference for unannotated parameters.}
+@inproceedings{findler-felleisen-2002,
+  title = {Contracts for {{Higher-Order Functions}}},
+  booktitle = {Proceedings of the {{Seventh ACM SIGPLAN International Conference}} on {{Functional Programming}} ({{ICFP}})},
+  author = {Findler, Robert Bruce and Felleisen, Matthias},
+  date = {2002},
+  pages = {48--59},
+  doi = {10.1145/581478.581484},
+  note = {Function contract boundaries and higher-order contracts.}
 }
 
-@inproceedings{siek-2015,
-  author    = {Siek, Jeremy G. and Vitousek, Michael M. and Cimini, Matteo and Boyland, John Tang},
-  title     = {Refined Criteria for Gradual Typing},
-  booktitle = {1st Summit on Advances in Programming Languages (SNAPL)},
-  year      = {2015},
-  doi       = {10.4230/LIPIcs.SNAPL.2015.274},
-  isbn      = {978-3-939897-80-4},
-  pages     = {274--293},
-  note      = {Formalises the gradual guarantee that adding type annotations to a term never breaks existing well-typed programs under the same (or more permissive) typing context.}
+@inproceedings{Garcia_2016,
+  title = {Abstracting Gradual Typing},
+  booktitle = {Proceedings of the 43rd {{Annual ACM SIGPLAN-SIGACT Symposium}} on {{Principles}} of {{Programming Languages}}},
+  author = {Garcia, Ronald and Clark, Alison M. and Tanter, Éric},
+  date = {2016-01-11},
+  series = {{{POPL}} '16},
+  pages = {429--442},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/2837614.2837670},
+  abstract = {Language researchers and designers have extended a wide variety of type systems to support gradual typing, which enables languages to seamlessly combine dynamic and static checking. These efforts consistently demonstrate that designing a satisfactory gradual counterpart to a static type system is challenging, and this challenge only increases with the sophistication of the type system. Gradual type system designers need more formal tools to help them conceptualize, structure, and evaluate their designs. In this paper, we propose a new formal foundation for gradual typing, drawing on principles from abstract interpretation to give gradual types a semantics in terms of pre-existing static types. Abstracting Gradual Typing (AGT for short) yields a formal account of consistency---one of the cornerstones of the gradual typing approach---that subsumes existing notions of consistency, which were developed through intuition and ad hoc reasoning. Given a syntax-directed static typing judgment, the AGT approach induces a corresponding gradual typing judgment. Then the type safety proof for the underlying static discipline induces a dynamic semantics for gradual programs defined over source-language typing derivations. The AGT approach does not resort to an externally justified cast calculus: instead, run-time checks naturally arise by deducing evidence for consistent judgments during proof reduction. To illustrate the approach, we develop a novel gradually-typed counterpart for a language with record subtyping. Gradual languages designed with the AGT approach satisfy by construction the refined criteria for gradual typing set forth by Siek and colleagues.},
+  isbn = {978-1-4503-3549-2},
+  note = {Provides an abstract-specification framework for gradual type systems via the abstracting discipline. Unifying the design space of consistency, predicates, and the gradual guarantee.},
+}
+
+@book{Joyce_1975,
+  title = {Finnegans {{Wake}}},
+  author = {Joyce, James},
+  date = {1975},
+  publisher = {{Faber and Faber}},
+  location = {London},
+  isbn = {978-0-571-10807-7},
+  langid = {english},
+  pagetotal = {628},
+}
+
+@inproceedings{kent-2016,
+  title = {Occurrence {{Typing Modulo Theories}}},
+  booktitle = {Proceedings of the 37th {{ACM SIGPLAN Conference}} on {{Programming Language Design}} and {{Implementation}} ({{PLDI}})},
+  author = {Kent, Andrew M. and Kempe, David and Tobin-Hochstadt, Sam},
+  date = {2016},
+  pages = {296--309},
+  doi = {10.1145/2908080.2908091},
+  note = {Generalisation of occurrence typing to work with external predicate theories, narrowing variable types under arbitrary compound predicates.}
+}
+
+@article{miyazaki-2019,
+  title = {Dynamic {{Type Inference}} for {{Gradual Hindley}}–{{Milner}}},
+  author = {Miyazaki, Yudai and Sekiyama, Taro and Igarashi, Atsushi},
+  date = {2019},
+  journaltitle = {ACM Transactions on Programming Languages and Systems (TOPLAS)},
+  shortjournal = {ACM Trans. Program. Lang. Syst. TOPLAS},
+  volume = {41},
+  number = {1},
+  pages = {5:1--5:59},
+  doi = {10.1145/3290331},
+  note = {Extension of gradual inference to a Hindley–Milner style.}
+}
+
+@inproceedings{rastogi-2015,
+  title = {Safe \& {{Efficient Gradual Typing}} for {{TypeScript}}},
+  booktitle = {Proceedings of the 42nd {{Annual ACM SIGPLAN-SIGACT Symposium}} on {{Principles}} of {{Programming Languages}} ({{POPL}})},
+  author = {Rastogi, Aseem and Swamy, Nikhil and Fournet, Cédric and Bierman, Gavin and Vekris, Panagiotis},
+  date = {2015},
+  pages = {167--180},
+  doi = {10.1145/2676726.2676971},
+  note = {Ahead-of-time static verification for hybrid typed-untyped programs.}
+}
+
+@inproceedings{Siek_2008,
+  title = {Gradual Typing with Unification-Based Inference},
+  booktitle = {Proceedings of the 2008 Symposium on {{Dynamic}} Languages},
+  author = {Siek, Jeremy G. and Vachharajani, Manish},
+  date = {2008-07-08},
+  series = {{{DLS}} '08},
+  pages = {1--12},
+  publisher = {Association for Computing Machinery},
+  location = {New York, NY, USA},
+  doi = {10.1145/1408681.1408688},
+  abstract = {Static and dynamic type systems have well-known strengths and weaknesses. Gradual typing provides the benefits of both in a single language by giving the programmer control over which portions of the program are statically checked based on the presence or absence of type annotations. This paper studies the combination of gradual typing and unification-based type inference with the goal of developing a system that helps programmers increase the amount of static checking in their program. The key question in combining gradual typing and type inference is how should the dynamic type of a gradual system interact with the type variables of a type inference system. This paper explores the design space and shows why three straightforward approaches fail to meet our design goals. This paper presents a new type system based on the idea that a solution for a type variable should be as informative as any type that constrains the variable. The paper also develops an efficient inference algorithm and proves it sound and complete with respect to the type system.},
+  isbn = {978-1-60558-270-2},
+  note = {Local type inference for unannotated parameters.},
+}
+
+@incollection{Siek_2009-1,
+  title = {Exploring the {{Design Space}} of {{Higher-Order Casts}}},
+  booktitle = {Programming {{Languages}} and {{Systems}}},
+  author = {Siek, Jeremy and Garcia, Ronald and Taha, Walid},
+  editor = {Castagna, Giuseppe},
+  date = {2009},
+  volume = {5502},
+  pages = {17--31},
+  publisher = {Springer Berlin Heidelberg},
+  location = {Berlin, Heidelberg},
+  doi = {10.1007/978-3-642-00590-9_2},
+  abstract = {This paper explores the surprisingly rich design space for the simply typed lambda calculus with casts and a dynamic type. Such a calculus is the target intermediate language of the gradually typed lambda calculus but it is also interesting in its own right. In light of diverse requirements for casts, we develop a modular semantic framework, based on Henglein’s Coercion Calculus, that instantiates a number of space-efficient, blame-tracking calculi, varying in what errors they detect and how they assign blame. Several of the resulting calculi extend work from the literature with either blame tracking or space efficiency, and in doing so reveal previously unknown connections. Furthermore, we introduce a new strategy for assigning blame under which casts that respect traditional subtyping are statically guaranteed to never fail. One particularly appealing outcome of this work is a novel cast calculus that is well-suited to gradual typing.},
+  isbn = {978-3-642-00589-3 978-3-642-00590-9},
+  langid = {english},
+  note = {Refined higher-order cast semantics, and the function contract wrapper.},
+}
+
+@inproceedings{Siek_2015,
+  title = {Refined {{Criteria}} for {{Gradual Typing}}},
+  booktitle = {1st {{Summit}} on {{Advances}} in {{Programming Languages}} ({{SNAPL}} 2015)},
+  author = {Siek, Jeremy G. and Vitousek, Michael M. and Cimini, Matteo and Boyland, John Tang},
+  editor = {Ball, Thomas and Bodík, Rastislav and Krishnamurthi, Shriram and Lerner, Benjamin S. and Morriset, Greg},
+  date = {2015},
+  series = {Leibniz {{International Proceedings}} in {{Informatics}} ({{LIPIcs}})},
+  volume = {32},
+  pages = {274--293},
+  publisher = {Schloss Dagstuhl – Leibniz-Zentrum für Informatik},
+  location = {Dagstuhl, Germany},
+  issn = {1868-8969},
+  doi = {10.4230/LIPIcs.SNAPL.2015.274},
+  isbn = {978-3-939897-80-4},
+  keywords = {dynamic languages,gradual typing,semantics,type systems},
+  note = {Formalises the gradual guarantee that adding type annotations to a term never breaks existing well-typed programs under the same (or more permissive) typing context.},
+}
+
+@inproceedings{siek-taha-2006,
+  title = {Gradual {{Typing}} for {{Functional Languages}}},
+  booktitle = {Scheme and {{Functional Programming Workshop}}},
+  author = {Siek, Jeremy G. and Taha, Walid},
+  date = {2006},
+  url = {http://scheme2006.cs.uchicago.edu/13-siek.pdf},
+  abstract = {Static and dynamic type systems have well-known strengths and weaknesses, and each is better suited for different programming tasks. There have been many efforts to integrate static and dynamic typing and thereby combine the benefits of both typing disciplines in the same language. The flexibility of static typing can be improved by adding a type Dynamic and a typecase form. The safety and performance of dynamic typing can be improved by adding optional type annotations or by performing type inference (as in soft typing). However, there has been little formal work on type systems that allow a programmer-controlled migration between dynamic and static typing. Thatte proposed Quasi-Static Typing, but it does not statically catch all type errors in completely annotated programs. Anderson and Drossopoulou defined a nominal type system for an object-oriented language with optional type annotations. However, developing a sound, gradual type system for functional languages with structural types is an open problem.},
+  note = {Foundations of the consistency relation and typing with :dynamic.},
 }
 
 @inproceedings{tobin-hochstadt-felleisen-2008,
-  author    = {Tobin-Hochstadt, Sam and Felleisen, Matthias},
-  title     = {The Design and Implementation of {Typed Scheme}},
-  booktitle = {Proceedings of the 35th Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)},
-  year      = {2008},
-  doi       = {10.1145/1328438.1328486},
-  pages     = {395--406},
-  note      = {Occurrence typing, flow-sensitive type narrowing based on predicate checks. The module boundary approach for progressive typing.}
+  title = {The {{Design}} and {{Implementation}} of {{Typed Scheme}}},
+  booktitle = {Proceedings of the 35th {{Annual ACM SIGPLAN-SIGACT Symposium}} on {{Principles}} of {{Programming Languages}} ({{POPL}})},
+  author = {Tobin-Hochstadt, Sam and Felleisen, Matthias},
+  date = {2008},
+  pages = {395--406},
+  doi = {10.1145/1328438.1328486},
+  note = {Occurrence typing, flow-sensitive type narrowing based on predicate checks. The module boundary approach for progressive typing.}
 }
 
 @incollection{wadler-findler-2009,
-  author    = {Wadler, Philip and Findler, Robert Bruce},
-  title     = {Well-Typed Programs Can't Be Blamed},
-  booktitle = {Programming Languages and Systems (ESOP 2009)},
+  title = {Well-{{Typed Programs Can}}'t {{Be Blamed}}},
+  booktitle = {Programming {{Languages}} and {{Systems}} ({{ESOP}} 2009)},
+  author = {Wadler, Philip and Findler, Robert Bruce},
+  date = {2009},
+  pages = {1--16},
   publisher = {Springer},
-  year      = {2009},
-  doi       = {10.1007/978-3-642-00590-9_1},
-  isbn      = {978-3-642-00589-3},
-  pages     = {1--16},
-  note      = {Blame assignment for runtime casts.}
-}
-
-@book{brady-2017,
-  author    = {Brady, Edwin},
-  title     = {Type-Driven Development with {Idris}},
-  publisher = {Manning Publications},
-  year      = {2017},
-  isbn      = {9781617293023},
-  note      = {Practical introduction to type-driven development using dependent types in Idris, demonstrating how types can guide program construction and verification.}
-}
-
-@book{joyce-1939,
-  author    = {Joyce, James},
-  title     = {Finnegans Wake},
-  publisher = {Faber \& Faber},
-  year      = {1939},
-  isbn      = {9780571215946},
-  note      = {}
-}
-
-@book{calvino-1968,
-  author    = {Calvino, Italo},
-  title     = {Cosmicomics},
-  publisher = {Harcourt Brace},
-  year      = {1968},
-  note      = {Translated by William Weaver. Original Italian title: Le cosmicomiche (1965)},
-  isbn      = {9780156226006},
-  note      = {}
+  doi = {10.1007/978-3-642-00590-9_1},
+  isbn = {978-3-642-00589-3},
+  note = {Blame assignment for runtime casts.}
 }

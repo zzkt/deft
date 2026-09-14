@@ -2,7 +2,7 @@
 # deft tests: enumeration types
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* defenum — creation")
 

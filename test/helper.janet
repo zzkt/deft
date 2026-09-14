@@ -1,7 +1,7 @@
 # -*- mode: janet; -*-
 # deft tests: asserts that keep count
 
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (var pass-count 0)
 (var fail-count 0)

@@ -90,6 +90,15 @@ fmt is a format string (supports %p); rest are values to format.
   (when *inference-trace-enabled*
     (apply eprintf fmt args)))
 
+(defn- bind-iter-vars
+  ```Bind `each` iterator variable(s) in env, defaulting to :dynamic.
+Handles both a bare symbol (each x coll) and destructuring
+(each [k v] coll), binding every symbol in the spec.```
+  [env spec]
+  (if (symbol? spec)
+    (put env spec :dynamic)
+    (each s spec (put env s :dynamic))))
+
 (defn- infer-syn
   ```Synthesize type of expression form.
 env is extended in place by def/var/let.
@@ -121,9 +130,11 @@ Prints trace output to stderr when inference tracing is enabled.```
         'let (infer-let env args)
         'quote :dynamic
         'while (infer-seq env args)
+        'when (infer-if env (tuple (get form 1)
+                                   (apply tuple 'do (array/slice form 2))))
         'for (let [iv (get form 1)] (put env iv :number)
                   (infer-seq env (array/slice form 4)))
-        'each (let [iv (get form 1)] (put env iv :dynamic)
+        'each (let [spec (get form 1)] (bind-iter-vars env spec)
                    (infer-seq env (array/slice form 3)))
         (infer-call env op args))))
 
@@ -195,8 +206,10 @@ Returns [sym narrow-type saved-type] or nil.```
     (def combined-type (unify-and-record then-type else-type))
     # Propagate narrowing. constrain tvar to narrow-type only if
     # the else-branch left it unconstrained (i.e. tvar is not
-    # referenced in the else branch).
-    (when (and narrow-info (type-var? (narrow-info 2)))
+    # referenced in the else branch). Skip when there is no else:
+    # the false path then returns :nil and the guarded value is
+    # legitimately optional (e.g. (when (number? x) x)).
+    (when (and narrow-info (type-var? (narrow-info 2)) (first else))
       (def narrow-sym (narrow-info 0))
       (def var-appears-in-else? (some |(deep-sym? $ narrow-sym) else))
       (unless var-appears-in-else?
@@ -273,8 +286,12 @@ Returns updated subst or nil on failure.
 
 # see above: forward declarations
 (varfn infer-scheme-call [env args scheme]
-    (let [param-types (get scheme 1)
-          ret-type (get scheme 2)
+    (let [arg-spec (get scheme 1)
+          flat-scheme? (not (or (array? arg-spec) (tuple? arg-spec)))
+          param-types (if flat-scheme?
+                        (tuple ;(array/slice scheme 1 (- (length scheme) 1)))
+                        arg-spec)
+          ret-type (if flat-scheme? (last scheme) (get scheme 2))
           n-params (length param-types)]
       (var subst @{})
       (each i (range (length args))

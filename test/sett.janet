@@ -2,7 +2,7 @@
 # deft tests: sett (typed set) and inference via sett and lett
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* sett — basic")
 

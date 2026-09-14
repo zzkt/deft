@@ -2,7 +2,7 @@
 # deft tests: values
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* deftval")
 

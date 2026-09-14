@@ -2,7 +2,7 @@
 # deft tests: binding and scope checks for typed sequential let
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* lett — basic")
 

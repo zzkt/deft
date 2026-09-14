@@ -56,12 +56,12 @@
 
 (defn unify
   ```Unify two types. Returns a substitution table.
-Type :dynamic unifies with anything (gradual semantics).
+Type :dynamic and :any unify with anything (gradual semantics).
 Raises an error on unification failure.
 ```
   [a b]
   (cond
-    (or (= :dynamic a) (= :dynamic b)) @{}
+    (or (= :dynamic a) (= :any a) (= :dynamic b) (= :any b)) @{}
     (= a b) @{}
     (type-var? a) (if (occurs? a b)
                     (error (string "occurs check failed: " a " in " b))

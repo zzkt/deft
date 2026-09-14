@@ -2,7 +2,7 @@
 # deft tests: deftrecord
 
 (import ./helper :prefix "")
-(import ../deft :prefix "")
+(import deft :prefix "")
 
 (print "* deftrecord: basic construction")
 
