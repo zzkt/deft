@@ -133,12 +133,10 @@ pair parsing but preserved in the returned parameter tuple.```
             needs-quote? (or (fn-type? t) (compound-type? t))
             type-form (if needs-quote? (tuple 'quote t) t)]
         (array/push out (tuple 'def sym (tuple 'get tbl-sym (tuple 'quote kw-key))))
-        (if (fn-type? t)
-          (array/push out (tuple 'def sym
-                            (tuple cast-fn sym type-form
-                                   (string (string name ":" sym) " (caller blamed)"))))
-          (array/push out (tuple cast-fn sym type-form
-                                 (string (string name ":" sym) " (caller blamed)"))))))
+        (unless (dynamic-type? t)
+          (array/push out (tuple 'when (tuple 'not= nil sym)
+                             (tuple cast-fn sym type-form
+                                    (string (string name ":" sym) " (caller blamed)")))))))
     out))
 
 

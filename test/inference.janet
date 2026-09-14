@@ -133,4 +133,21 @@
 (cassert "inf-each-cmp node stays dynamic"
   (get inf-each-cmp-args 1) :dynamic)
 
+(print "\n* if narrowing: bare var in 'else' branch not pinned to 'then' type")
+
+# A value used narrowly in the then-branch and returned from the else-branch
+# must not be pinned to the then-branch type, but left unconstrained.
+(deftn narrow-f [x] (if (string? x) (length x) x))
+(def narrow-f-args (get (fn-type-of 'narrow-f) 1))
+(cassert "narrow-f arg not pinned to :number" (get narrow-f-args 0) :dynamic)
+(cassert "narrow-f accepts string" (narrow-f "abc") 3)
+(cassert "narrow-f accepts number" (narrow-f 42) 42)
+
+# conversely, a bare var in the 'then' branch under narrowing is pinned
+(deftn narrow-then [x] (if (number? x) x 0))
+(cassert "narrow-then arg pinned to :number"
+  (get (get (fn-type-of 'narrow-then) 1) 0) :number)
+(cassert "narrow-then accepts number" (narrow-then 5) 5)
+(cassert-err "narrow-then still catches string" (narrow-then "bad"))
+
 (print-results)

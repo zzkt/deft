@@ -402,7 +402,8 @@ with a default becomes optional (not required to construct).
           (array/push do-body
             ~(eval ,(struct-eval-form fn-name (tuple o v)
                      (tuple 'put o (field-kws i) v)
-                     (tuple cast-fn o name (string "set-" prefix "-" (field-names i)))
+                     (tuple cast-fn o name (string "set-" prefix "-"
+                                                   (field-names i)))
                      o)
                    ,env))))
 
@@ -414,13 +415,28 @@ with a default becomes optional (not required to construct).
                          field-kws)
             default-pp (tuple 'fn (tuple ppv)
                                (tuple 'string prefix "("
-                                      (tuple 'string/join (apply tuple 'array pushers) ", ") ")"))
+                                      (tuple 'string/join
+                                              (apply tuple 'array pushers)
+                                              ", ") ")"))
             pp-handler (if print-fn
                          (tuple 'fn (tuple pp-sym-arg) (tuple print-fn pp-sym-arg))
                          default-pp)
+            # Positional-only table used first (with fewer args than required
+            # fields) so keyword *values* still work positionally.
             req-kvs (interleave req-kws
                                 (map (fn [i] (tuple 'get args-sym i))
                                      (range (length req-kws))))
+            req-bodies (map (fn [kw]
+                              (tuple 'when
+                                (tuple 'and
+                                  (tuple '< idx-sym
+                                          (tuple 'length args-sym))
+                                  (tuple 'not (tuple 'keyword?
+                                                      (tuple 'get args-sym idx-sym))))
+                                (tuple 'do
+                                  (tuple 'put ov kw (tuple 'get args-sym idx-sym))
+                                  (tuple '++ idx-sym))))
+                            req-kws)
             opt-bodies (map (fn [f]
                               (let [kw (keyword (f 1))
                                     default-form (if (has-default? f) (f 3) nil)]
@@ -442,8 +458,19 @@ with a default becomes optional (not required to construct).
                          (tuple 'put ov k-sym
                                  (tuple 'get args-sym (tuple '+ idx-sym 1))))
                        (tuple '+= idx-sym 2)))
-            body-parts @[(tuple 'def ov (apply tuple 'table req-kvs))
-                         (tuple 'var idx-sym (length req-kws))]
+            body-parts @[(tuple 'def ov
+                             (tuple 'if
+                               (tuple '<= (tuple 'length args-sym)
+                                       (length req-kws))
+                               (apply tuple 'table req-kvs)
+                               (tuple 'table)))
+                          (tuple 'var idx-sym
+                             (tuple 'if
+                               (tuple '<= (tuple 'length args-sym)
+                                       (length req-kws))
+                               (length req-kws)
+                               0))]
+            _ (each r req-bodies (array/push body-parts r))
             _ (each b opt-bodies (array/push body-parts b))
             _ (array/push body-parts kw-loop)
             _ (array/push body-parts (tuple 'put ov :pp pp-sym))

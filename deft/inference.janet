@@ -75,6 +75,13 @@ Returns the type variable itself if not (yet) resolved.```
     (get *infer-substitution* t t)
     t))
 
+(defn- free-tvar?
+  "Check whether t is a type variable not bound in *infer-substitution*."
+  [t]
+  (and (type-var? t)
+       (let [resolved (get *infer-substitution* t)]
+         (or (nil? resolved) (= resolved t)))))
+
 (defn- lookup-type
   ```Look up a symbol's inferred type, resolving through substitution.
 Returns :dynamic for unresolved variables.
@@ -203,7 +210,10 @@ Returns [sym narrow-type saved-type] or nil.```
                      :nil))
     (def else-subst (copy-subst *infer-substitution*))
     (merge-substitutions then-subst else-subst)
-    (def combined-type (unify-and-record then-type else-type))
+    # Combining branch types must not pin an unbound type variable
+    (def combined-type
+      (unify-and-record then-type
+        (if (free-tvar? else-type) :dynamic else-type)))
     # Propagate narrowing. constrain tvar to narrow-type only if
     # the else-branch left it unconstrained (i.e. tvar is not
     # referenced in the else branch). Skip when there is no else:

@@ -244,4 +244,45 @@
 (cassert "short docstring still maps positionally (p)" (curt-p nc) 5)
 (cassert "short docstring still maps positionally (q)" (curt-q nc) 6)
 
+(print "\n* deftrecord: keyword construction with required fields")
+
+(deftrecord :pair
+  (field a :number)
+  (field b :number))
+
+(def kp (make-pair :a 1 :b 2))
+(cassert "full keyword construction" (tuple (pair-a kp) (pair-b kp)) (tuple 1 2))
+(cassert "keyword constructed isa?" (isa? kp :pair) true)
+
+(def kp2 (make-pair :b 2 :a 1))
+(cassert "keyword construction any order" (tuple (pair-a kp2) (pair-b kp2)) (tuple 1 2))
+
+(def mp (make-pair 1 :b 2))
+(cassert "mixed positional + keyword" (tuple (pair-a mp) (pair-b mp)) (tuple 1 2))
+
+(def pp (make-pair 1 2))
+(cassert "positional construction" (tuple (pair-a pp) (pair-b pp)) (tuple 1 2))
+
+(cassert-err "keyword construction missing field" (make-pair :a 1))
+(cassert-err "keyword construction wrong type" (make-pair :a "x" :b 2))
+
+(deftrecord :status-tag
+  (field code :keyword)
+  (field n :number))
+
+(def st (make-status-tag :ready 3))
+(cassert "keyword value passed positionally" (tuple (status-tag-code st) (status-tag-n st)) (tuple :ready 3))
+
+(print "\n* deftrecord: mixed keyword construction with defaulted fields")
+
+(deftrecord :bounded
+  (field lo :number)
+  (optional hi :number 10))
+
+(def bo (make-bounded 1 :hi 20))
+(cassert "required positional + defaulted keyword" (tuple (bounded-lo bo) (bounded-hi bo)) (tuple 1 20))
+
+(def bo2 (make-bounded :lo 1 :hi 20))
+(cassert "full keyword + defaulted" (tuple (bounded-lo bo2) (bounded-hi bo2)) (tuple 1 20))
+
 (print-results)
