@@ -249,22 +249,29 @@ pair parsing but preserved in the returned parameter tuple.```
   (some type-spec? args))
 
 
+(defn strip-module-prefix
+  [x]
+  (if (symbol? x)
+    (symbol (last (string/split "/" x)))
+    x))
+
+
 (defn expand-type-form
   [expr]
   (let [type-pred-fn (deft-ref 'type-predicate)]
     (if (keyword? expr)
       (tuple (tuple type-pred-fn expr) 'v)
       (if (tuple? expr)
-        (case (first expr)
+        (case (strip-module-prefix (first expr))
           'or  (apply tuple 'or (map expand-type-form (array/slice expr 1)))
           'and (apply tuple 'and (map expand-type-form (array/slice expr 1)))
           'not (tuple 'not (expand-type-form (expr 1)))
-           'define (let [define-args (expr 1)
+           'define (let [[arg-names arg-types] (parse-flex-args (expr 1))
                          body (array/slice expr 2)
-                         arg-names (filter |(not (keyword? $)) define-args)
-                         arg-types (filter keyword? define-args)
                          checks (map (fn [n t]
-                                       (tuple (tuple type-pred-fn t) n))
+                                       (tuple (tuple type-pred-fn
+                                                    (if (tuple? t) (tuple 'quote t) t))
+                                             n))
                                      arg-names arg-types)]
                      ~((fn [,;arg-names] (and ,;checks ,;body)) v))
            ':array (tuple (tuple type-pred-fn (tuple 'quote expr)) 'v)
