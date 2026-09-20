@@ -308,7 +308,7 @@ e.g. (deftype :filepath :string) has same check as :string.```
       (keyword? pred)
         ~(,register-type-fn ',name (fn [v] ,(expand-type-form pred)))
       (and (tuple? pred)
-           (find |(= (first pred) $)
+           (find |(= (strip-module-prefix (first pred)) $)
                  '(or and not define :array :tuple :table :string)))
         ~(,register-type-fn ',name (fn [v] ,(expand-type-form pred)))
       ~(,register-type-fn ',name ,pred))))

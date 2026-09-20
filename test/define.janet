@@ -128,4 +128,12 @@
 (define d-pos-add [a :positive? b :positive?] :positive? (+ a b))
 (cassert "custom type" (d-pos-add 5 3) 8)
 
+# define with import prefix
+(import ../deft/init :as d)
+(d/deftype :positive (fn [v] (and (number? v) (> v 0))))
+(d/deftype :nonzero (or :positive (d/define [v :number] (< v 0))))
+(cassert "import prefix in nested define" (d/isa? 5 :nonzero) true)
+(cassert "import prefix in nested define 2" (d/isa? 0 :nonzero) false)
+(cassert "import prefix in nested define 3" ((d/define no-zeros [v :nonzero] v) 5) 5)
+
 (print-results)
