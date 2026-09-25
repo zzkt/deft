@@ -195,8 +195,8 @@ to verify assumptions about inference.
 
 (defmacro with-inference-trace
   ```Execute body with inference tracing enabled.
-  Prints every form with inferred type to stderr.
-  Restores previous trace state on completion.```
+Prints every form with inferred type to stderr.
+Restores previous trace state on completion.```
   [& body]
   (with-syms [prev]
     ~(let [,prev *inference-trace-enabled*]
@@ -229,7 +229,9 @@ No type annotation, var.```
                 tag-value-fn (deft-ref 'tag-value)
                 v (gensym) val (rest (+ off 1))
                 def-or-var (if (immutable? second) 'def 'var)
-                type-form (if (compound-type? second) (tuple 'quote second) second)
+                type-form (if (compound-type? second)
+                            (tuple 'quote second)
+                            second)
                 blame (string name " definition")]
             (tuple def-or-var name
                    (tuple 'let (array v val)
@@ -299,45 +301,50 @@ No type annotation, var.```
 
 
 (defmacro deftype
- ```Register a new type :keyword with a predicate function or compound form.
-If pred is a keyword, creates an alias for an existing type
-e.g. (deftype :filepath :string) has same check as :string.```
-  [name pred]
+ ```Register the type `name` with a predicate function `pred` or compound form.
+ If pred is a keyword, creates an alias for an existing type
+ e.g. (deftype :filepath :string) has same check as :string.
+The `replace?` flag must be set to replace or update a defintion.```
+  [name pred &opt replace?]
   (let [register-type-fn (deft-ref 'register-type)]
     (cond
       (keyword? pred)
-        ~(,register-type-fn ',name (fn [v] ,(expand-type-form pred)))
+        ~(,register-type-fn ',name (fn [v] ,(expand-type-form pred)) nil ,replace?)
       (and (tuple? pred)
            (find |(= (strip-module-prefix (first pred)) $)
                  '(or and not define :array :tuple :table :string)))
-        ~(,register-type-fn ',name (fn [v] ,(expand-type-form pred)))
-      ~(,register-type-fn ',name ,pred))))
+        ~(,register-type-fn ',name (fn [v] ,(expand-type-form pred)) nil ,replace?)
+      ~(,register-type-fn ',name ,pred nil ,replace?))))
 
 
 (defmacro deftrecord
   ```Define a typed record with named fields, optional guard, and custom printer.
 
-Generates constructor, accessors, mutators and pp handler based on record/field names
+Generates constructor, accessors, mutators and pp handler from record/field names
  - make-<name> constructor — accepts required positional args, then optional
    positional args (default nil), then :keyword value pairs for any field.
  - <name>-<field> accessors
  - set-<name>-<field> mutators
 
-Each field clause is either:
-  (field name type [default])      — positional arg (required, or defaulted if given)
-  (optional name type [default])   — optional positional arg (default nil or given)
+Any number of fields (or optional fields) can be declared:
+  (field name type [default])      — positional arg (required, if no default)
+  (optional name type [default])   — optional positional arg (defaults to nil)
   (guard pred-fn)                  — optional guard predicate
   (print print-fn)                 — optional custom printer
 
-A trailing `default` on a `field` or `optional` clause supplies the
-instantiation value used when the argument is not provided. A `field`
-with a default becomes optional (not required to construct).
+A trailing `default` on a `field` or `optional` clause supplies a default
+instantiation value if the argument is not provided. If a `field` is given a
+default value, the field becomes optional.
 ```
   [name & clauses]
-  (let [register-type-fn (deft-ref 'register-type)
+  (let [replace? (and (> (length clauses) 0)
+                      (= true (last clauses)))
+        clause-list (if replace?
+                      (array/slice clauses 0 (dec (length clauses)))
+                      clauses)
+        register-type-fn (deft-ref 'register-type)
         cast-fn (deft-ref 'cast)
         tag-value-fn (deft-ref 'tag-value)
-        register-guard-fn (deft-ref 'register-guard)
         pp-str-fn (deft-ref 'pp-str)
         prefix (string/replace ":" "" (string name))
         clause-type? (fn [c tag]
@@ -348,21 +355,21 @@ with a default becomes optional (not required to construct).
         has-default? (fn [f] (and (tuple? f) (> (length f) 3)))
         req-fields (filter (fn [c] (and (clause-type? c "field")
                                         (not (has-default? c))))
-                           clauses)
+                           clause-list)
         all-fields (mapcat (fn [c] (if (or (clause-type? c "field")
                                            (clause-type? c "optional"))
                                      @[c] @[]))
-                           clauses)
-        # optional-like fields in declaration order: `optional` clauses and
-        # any `field` clause carrying a default value (so it need not be supplied)
+                           clause-list)
+        # optional-like fields in declaration order: `optional` clauses
+        # and any `field` clause carrying a default value
         opt-group (filter (fn [c] (or (clause-type? c "optional")
                                       (has-default? c)))
-                          clauses)
+                          clause-list)
         guard-clauses (filter (fn [c] (clause-type? c "guard"))
-                              clauses)
+                              clause-list)
         guard-fn (if (> (length guard-clauses) 0) ((guard-clauses 0) 1) nil)
         print-clauses (filter (fn [c] (clause-type? c "print"))
-                              clauses)
+                              clause-list)
         print-fn (if (> (length print-clauses) 0)
                    ((print-clauses 0) 1) nil)
         field-names (map (fn [f] (string/replace ":" "" (string (f 1))))
@@ -382,10 +389,8 @@ with a default becomes optional (not required to construct).
         (array/push do-body
           ~(,register-type-fn ',name
                (fn [,pv] ,(build-struct-pred pv field-kws field-types
-                            opt-kws))))
-      (when guard-fn
-        (array/push do-body
-          ~(,register-guard-fn ',name ,guard-fn)))
+                            opt-kws))
+               ,guard-fn ,replace?))
       (array/push do-body
         ~(def ,env (fiber/getenv (fiber/current))))
       (each i (range (length field-names))
@@ -491,7 +496,7 @@ with a default becomes optional (not required to construct).
  ```Define an enumeration type from a key-value table.
 Generates `<name>`, `<name>-extend`, and `<name>-remove` helpers.
 ```
-  [name kv-map]
+  [name kv-map &opt replace?]
   (let [register-type-fn (deft-ref 'register-type)
         enum-tables-ref (deft-ref '*enum-tables*)
         prefix (string/replace ":" "" (string name))
@@ -541,15 +546,35 @@ Generates `<name>`, `<name>-extend`, and `<name>-remove` helpers.
                          body)]
           (tuple 'quote defn-form))]
     # macro body
-    ~(do (put (,enum-tables-ref) ',name (merge-into @{} ,kv-map))
-         (,register-type-fn
-           ',name
-           (fn [v] (and (string? v)
-                        (not= nil (in (in (,enum-tables-ref) ',name) v)))))
-        (let [acc-env (fiber/getenv (fiber/current))]
+    ~(do (let [enum-table (merge-into @{} ,kv-map)]
+           (,register-type-fn
+             ',name
+             (fn [v] (and (string? v)
+                          (not= nil (in enum-table v))))
+             nil ,replace?)
+           (put (,enum-tables-ref) ',name enum-table))
+         (let [acc-env (fiber/getenv (fiber/current))]
           (eval ,eval-accessor acc-env)
           (eval ,eval-extend acc-env)
           (eval ,eval-remove acc-env)))))
+
+
+(defmacro replace-type!
+  "Replace a type definition without raising a redefinition error."
+  [name & args]
+  (let [pred (first args)
+        deftype-form?
+        (and (= (length args) 1)
+             (or (not (tuple? pred))
+                 (find |(= (strip-module-prefix (first pred)) $)
+                       '(or and not define fn :array :tuple :table :string))))
+        enum-form?
+        (and (= (length args) 1)
+             (or (table? pred) (struct? pred)))]
+    (cond
+      enum-form? (tuple 'defenum name pred true)
+      deftype-form? (tuple 'deftype name pred true)
+      (apply tuple (array/concat @['deftrecord name] args @[true])))))
 
 
 (defmacro deftwrap

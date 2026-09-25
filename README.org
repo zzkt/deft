@@ -203,6 +203,16 @@ This makes it possible for example, to define the type "an array of 7 prime numb
 
 Further: [cite:@siek-taha-2006] on the consistency relation extended to custom predicates.
 
+*** =replace-type!=
+
+A type needs to be redefined explicitly. =deftype=, =deftrecord=, or =defenum= will raise an error if replacing an existing definition (including core types). If the redefinition is intentioanl, use =replace-type!= with the same form. The wrapper updates the type predicate, any record or enum table as a single operation.
+
+#+begin_src janet
+(deftype :temporary (fn [v] (= v 1)))
+(deftype :temporary (fn [v] (= v 2))) # => type error
+(replace-type! :temporary (fn [v] (= v 2))) # => ok
+#+end_src
+
 ** Typed functions
 *** =deftfn=
 

@@ -7,6 +7,9 @@
   "Table mapping type labels (keywords) to their predicate functions."
   (table))
 
+(var *guard-registry* nil)
+(var *type-predicates* nil)
+
 (var *value-types*
   "Table mapping values to their declared type label."
   (table))
@@ -25,13 +28,17 @@
   (get deft-refs k))
 
 (defn register-type
-  "Register a named type predicate."
-  [name pred]
-  (put *type-registry* name pred))
+  "Register a named type predicate, warning when a name is redefined."
+  [name pred &opt guard replace?]
+  (when (or (not (nil? (get *type-predicates* name)))
+            (not (nil? (get *type-registry* name))))
+    (unless replace?
+      (errorf "type %q redefined. Use replace-type! if this is intentional." name)))
+  (put *type-registry* name pred)
+  (put *guard-registry* name guard)
+  pred)
 
-(var *guard-registry*
-  "Table mapping record type keywords to their guard predicate."
-  @{})
+(set *guard-registry* @{})
 
 (defn register-guard
   "Register a guard predicate for a record type. Returns the guard-fn."
@@ -54,10 +61,11 @@
       (and pred (pred value)))))
 
 (defn unregister-type
-  "Remove a named type predicate."
+  "Remove a named type predicate and its guard."
   [name]
   (var old (get *type-registry* name))
   (put *type-registry* name nil)
+  (put *guard-registry* name nil)
   old)
 
 (defn untype
@@ -101,8 +109,7 @@
     (let [ret (if (< i (length parts)) (parts (+ i 1)) :dynamic)]
       {:args (tuple ;args) :ret ret})))
 
-(def *type-predicates*
-  "Built-in type predicates keyed by name (as :keyword)."
+(set *type-predicates*
   (table
     # explicit dynamic type
     :dynamic (fn [_] true)
