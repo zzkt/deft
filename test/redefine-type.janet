@@ -4,9 +4,8 @@
 (print "* type redefinition")
 
 (deftype :replaceable (fn [v] (= v 1)))
-(deftype :replaceable (fn [v] (= v 2)))
-(cassert "redefined predicate" (isa? 2 :replaceable) true)
-
+(cassert-err "caught redefintion"
+             (deftype :replaceable (fn [v] (= v 2))))
 (replace-type! :replaceable (fn [v] (= v 3)))
 (cassert "replace-type! predicate" (isa? 3 :replaceable) true)
 
