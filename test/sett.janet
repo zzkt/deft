@@ -22,6 +22,44 @@
 (sett nullable 42)
 (cassert "sett nil-type" nullable 42)
 
+# sett on a typed mutable binding with define.
+(print "\n* sett — typed bindings made by define")
+
+(define d-num :number 1)
+(sett d-num 2)
+(cassert "define/sett accepts matching value" d-num 2)
+(cassert-err "define/sett rejects mismatch" (sett d-num "bad"))
+(cassert "define/sett leaves value intact on failure" d-num 2)
+(cassert "define/sett keeps recorded type" (type d-num) :number)
+
+(define d-str :string "hi")
+(sett d-str "bye")
+(cassert "define/sett :string" d-str "bye")
+(cassert-err "define/sett :string mismatch" (sett d-str 99))
+
+# compound declared type is registered just the same
+(define d-arr (:array :number) @[1 2])
+(cassert-err "define/sett compound mismatch" (sett d-arr "nope"))
+(sett d-arr @[1 2 3])
+(cassert "define/sett compound ok" (length d-arr) 3)
+
+# mutable container keeps working through sett
+(define d-tab (:table :keyword :number) @{:a 1})
+(cassert-err "define/sett table mismatch" (sett d-tab @{:a "x"}))
+(sett d-tab @{:a 9})
+(cassert "define/sett table ok" (get d-tab :a) 9)
+
+# :immutable selects `def`, which is not settable and must not be registered
+(define d-imm :immutable "fixed")
+(cassert "define :immutable value" d-imm "fixed")
+(cassert "define :immutable not in var-types"
+         (nil? (get ((deft-ref 'var-types)) 'd-imm)) true)
+
+# untyped `define` is still a bare var and stays unchecked
+(define d-plain 5)
+(sett d-plain "free")
+(cassert "define untyped stays unchecked" d-plain "free")
+
 
 (print "\n* sett — with inference in deftn")
 

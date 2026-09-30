@@ -214,7 +214,8 @@ Restores previous trace state on completion.```
 
 When args have type annotations, runtime type checks ar inserted.
 If :type is :immutable, creates a def, otherwise creates a var.
-No type annotation, var.```
+No type annotation, var.
+```
   [name & rest]
   (let [has-doc? (string? (rest 0))
         docstring (if has-doc? (rest 0) nil)
@@ -227,23 +228,29 @@ No type annotation, var.```
         (if typed
           (let [cast-fn (deft-ref 'cast)
                 tag-value-fn (deft-ref 'tag-value)
+                var-types-fn (deft-ref 'var-types)
                 v (gensym) val (rest (+ off 1))
                 def-or-var (if (immutable? second) 'def 'var)
                 type-form (if (compound-type? second)
                             (tuple 'quote second)
                             second)
-                blame (string name " definition")]
+                blame (string name " definition")
+                register (when (= 'var def-or-var)
+                           (tuple 'put (tuple var-types-fn)
+                                  (tuple 'quote name)
+                                  type-form))]
             (tuple def-or-var name
                    (tuple 'let (array v val)
                           (tuple cast-fn v type-form blame)
                           (tuple tag-value-fn v type-form)
+                          register
                           v)))
           (apply tuple 'var name (array/slice rest off)))))))
 
 
 (defmacro deftfn
   ```Define a public typed function.
-   Every positional arg must have a type spec.```
+Every positional arg must have a type spec.```
   [name args ret-type & body]
   (build-typed-fn-form 'defn name args ret-type body))
 
