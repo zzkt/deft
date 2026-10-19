@@ -33,7 +33,9 @@
   (when (or (not (nil? (get *type-predicates* name)))
             (not (nil? (get *type-registry* name))))
     (unless replace?
-      (errorf "type %q redefined. Use replace-type! if this is intentional." name)))
+      (warn-compile (string "type :" name
+                            " was redefined. Use replace-type! if this is intentional.")
+                            :strict "")))
   (put *type-registry* name pred)
   (put *guard-registry* name guard)
   pred)
